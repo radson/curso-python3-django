@@ -1,4 +1,4 @@
-# curso-python3-django
+# Curso Python 3 na Web com Django (Básico e Intermediário) 
 
 Estudos baseados no curso Python 3 na Web com Django (Básico e Intermediário) do autor [Gileno Filho](https://www.udemy.com/user/gilenofilho/). Atualmente o curso não aceita mais inscrições.
 

@@ -98,3 +98,59 @@ def home(request):
     return HttpResponse('Hello world!')
 
 ```
+
+## Aula 06 - Introdução aos Templates
+
+[Doc oficcial do Django 1.11](https://docs.djangoproject.com/en/1.11/topics/templates/)
+
+## Aula 07 - Primeiro Template
+
+Executar o shell do projeto para realizar alguns testes com templates
+
+```bash
+$ python manage.py shell
+```
+
+O shell irá carregar todas as configurações do Django o do projeto. Neste shell serão importadas as classes Template e Context. Em seguida instanciado um template que faz referencia a uma variável usuário e será instanciado um contexto criando a variável usuario com um valor.
+
+```python
+from django.template import Template, Context
+template = Template("Bem vindo: {{ usuario }}")
+context = Context({"usuario": "Radson"})
+print(template.render(context))
+```
+
+Uma modificação para exemplificar, usando o modificador lower
+
+```python
+template = Template("Bem vindo: {{ usuario|lower }}")
+print(template.render(context))
+```
+
+Opcionalmente pode-se instalar o shell iterativo ipython
+
+```shell
+$ pip install ipython
+```
+
+Próxima etapa é criar a estrutura para os templates da app core. O Django reconhece o diretório 'template' dentro do diretório de cada app. Criar também o arquivo do primeiro template 'home.html'
+
+```shell
+$ mkdir simplemooc/core/templates
+$ > simplemooc/core/templates/home.html
+```
+
+Adicionar o conteúdo (ainda sem as tags HTML)
+
+```django
+Simple MOOC
+Usuario: {{ usuario }}
+```
+
+Alterar a view home chamando o shortcut render passando como parâmetro o request, o nome do template e um contexto (dicionário)
+
+```python
+def home(request):
+    return render(request, 'home.html', {'usuario': 'Radson'})
+
+```
