@@ -152,5 +152,24 @@ Alterar a view home chamando o shortcut render passando como parâmetro o reques
 ```python
 def home(request):
     return render(request, 'home.html', {'usuario': 'Radson'})
+```
 
+## 08. Template base
+
+Será criada uma página completa que será base do projeto. Para CSS será usado os módulos [Pure.css](https://purecss.io/)
+> Para manter compatibilidade com o css personalizado do curso será mantido a mesma versão da época e não a mais atual.
+
+No arquivo home.html criado na aula anterior será adicionado o conteúdo do arquivo base.html previamente já elaborado para o curso. Para o CSS apontar para o CDN do Pure.css e um arquivo adicional 'style.css' com a tag 'static' que contem um CSS personalizado para a aplicação.
+
+```Django
+{% load static %}
+<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.3.0/pure-min.css">
+<link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+```
+
+A tag static determina urls específicas configuradas no settings.py que podem apontar para caminhos (ou servidores de conteúdo externo ao controle do Django), onde ficam os arquivos estáticos. Para este curso foi considerado o uso de um static para cada app. O conteúdo do arquivo style.css também já foi feito para o curso. 
+
+```Shell
+$ mkdir -p simplemooc/core/static/css
+$ > simplemooc/core/static/css/style.css
 ```
