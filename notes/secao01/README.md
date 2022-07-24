@@ -2,33 +2,37 @@
 
 Criar ambiente virtual
 
-$ virtualenv venv -p python3
+```Shell
+virtualenv venv -p python3
+```
 
 Para ativar o ambiente:
 
+```Shell
 $ source venv/bin/activate
+```
 
 Atualizando pacotes
 
-```
+```Shell
 pip install -U pip wheel setuptools
 ```
 
 Pacotes extra para melhor gestão da qualidade do código
-```sh
+
+```Shell
 $ pip install flake8 mypy autopep8
 ```
 
 Para desativar
 
-```
+```Shell
 $ deactivate
 ```
 
-
 ## Aula 04 - Configurando o Django
 
-```
+```Shell
 $ source venv/bin/activate
 $ cd src
 $ pip install django==1.11.29 #Ultima release, sem suporte desde 2020
@@ -60,13 +64,13 @@ Com o venv ativado, realizar a sincronização dos models com o banco de dados.
 
  As tabelas sincronizadas estão relacionada as apps do Django: admin, auth, contenttypes, sessions
 
-```sh
+```Shell
 $ python manage.py migrate
 $ python manage.py createsuperuser
 ```
 Agora criar a primeira aplicação dentro do projeto
 
-```sh
+```Shell
 $ mkdir simplemooc/core
 $ python manage.py startapp core simplemooc/core
 ```
@@ -101,13 +105,13 @@ def home(request):
 
 ## Aula 06 - Introdução aos Templates
 
-[Doc oficcial do Django 1.11](https://docs.djangoproject.com/en/1.11/topics/templates/)
+[Doc oficial do Django 1.11](https://docs.djangoproject.com/en/1.11/topics/templates/)
 
 ## Aula 07 - Primeiro Template
 
 Executar o shell do projeto para realizar alguns testes com templates
 
-```bash
+```Shell
 $ python manage.py shell
 ```
 
@@ -129,20 +133,20 @@ print(template.render(context))
 
 Opcionalmente pode-se instalar o shell iterativo ipython
 
-```shell
+```Shell
 $ pip install ipython
 ```
 
 Próxima etapa é criar a estrutura para os templates da app core. O Django reconhece o diretório 'template' dentro do diretório de cada app. Criar também o arquivo do primeiro template 'home.html'
 
-```shell
+```Shell
 $ mkdir simplemooc/core/templates
 $ > simplemooc/core/templates/home.html
 ```
 
 Adicionar o conteúdo (ainda sem as tags HTML)
 
-```django
+```Django
 Simple MOOC
 Usuario: {{ usuario }}
 ```
@@ -173,3 +177,22 @@ A tag static determina urls específicas configuradas no settings.py que podem a
 $ mkdir -p simplemooc/core/static/css
 $ > simplemooc/core/static/css/style.css
 ```
+## 09. Página de contato
+
+Entender um pouco mais sobre views e urls criando uma página de contato.
+
+No arquivo ```core/views.py``` adicionar uma novo método
+
+```python
+def contact(request):
+    return render(request, 'contact.html')
+```
+
+No arquivode urls, adicionar a nova URL:
+
+```python
+url(r'^contato/$', views.contact, name='contact'),
+```
+
+Criar o novo arquivo de template em ```core/templates/contact.html``` com o conteúdo da nova página. O autor usou o mesmo conteúdo da 'home.html' alterando apenas a parte do conteúdo. Na próxima aula será utilizado o conceito de herança de templates para evitar repetição de código nos templates.
+
