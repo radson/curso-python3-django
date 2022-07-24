@@ -196,3 +196,40 @@ url(r'^contato/$', views.contact, name='contact'),
 
 Criar o novo arquivo de template em ```core/templates/contact.html``` com o conteúdo da nova página. O autor usou o mesmo conteúdo da 'home.html' alterando apenas a parte do conteúdo. Na próxima aula será utilizado o conceito de herança de templates para evitar repetição de código nos templates.
 
+## 10. Herança de templates
+
+Em Django um template pode herdar parte de outro template. Para esta aula, será criado um novo arquivo ```base.html``` que irá conter todo o HTML que é comum às demais páginas do projeto. O conteúdo inicial será baseado no do arquivo ```home.html```.
+
+```Shell
+$ cd simplemooc/core/templates/
+$ cp home.html base.html
+```
+No arquivo base.html, remover o conteúdo da div com class "content" mantendo as tags de abertura e fechamendo da div. Deixar as divs "header" e  "footer". Dentro da div content, definir um bloco com as tags do Django conforme a seguir:
+
+```Django
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+```
+
+Nos templates que herdare do ```base.html``` e que definirem um bloco content, o conteúdo será exibido neste local do template base.
+
+No arquivo ```home.html``` pode-se remover todo o conteúdo que está definido no ```base.html``` e deixar apenas o que é parte especifica do home.html. Para informar que herda do base, deve-se inserir a diretiva no início do arquivo indicando de onde será herdado e a definição do bloco content do base onde deverá ser exibido o conteúdo do home:
+
+```Django
+{% extends "base.html" %}
+
+{% block content %}
+<!-- conteudo do home.html aqui -->
+{% endblock %}
+```
+
+As mesmas alterações devem ser realizadas no template ```contact.html```.
+
+No arquivo ```base.html``` devem ser realizados os ajutes nos links para as páginas usando a template tag no Django ```url``` que recebe como parametro o nome da URL definido nas views.
+
+```Django
+<li class="pure-menu-selected"><a href="{% url 'home' %}">Início</a></li>
+<li><a href="#">Cursos</a></li>
+<li><a href="{% url 'contact' %}">Contato</a></li>
+```
