@@ -233,3 +233,42 @@ No arquivo ```base.html``` devem ser realizados os ajutes nos links para as pág
 <li><a href="#">Cursos</a></li>
 <li><a href="{% url 'contact' %}">Contato</a></li>
 ```
+
+## 11. URL's (include e namespace)
+
+O Django possui recursos para permitir que as URLs possam ser organizadas por aplicação dentro de um mesmo projeto e importadas no arquivo de url do projeto principal por meio da função ```include()```
+
+Dentro da app ```core``` adicionar o arquivo ```urls.py``` para definir as rotas desta applicação:
+
+```Shell
+$ > core/urls.py
+```
+
+Neste arquivo deverão estar as URLs definidas nas etapas anteriores (home e contact)
+
+```Python
+from django.conf.urls import url
+
+from . import views
+
+urlpatterns = [
+    url(r'^$', views.home, name='home'),
+    url(r'^contato/$', views.contact, name='contact'),
+]
+```
+
+No arquivo anterior de URLs em  ```simplemooc/urls.py``` as referências que agora estão nas urls do app core podem ser substituídas pelo include passando como parametro o caminho do arquivo urls.py da aplicação core. Deve-se também omitir o ```$``` na expressão regular de modo que o Django consiga interpretrar a URL concatenando com o definido em ```core/urls.py```. Será utilizado também o conceito de [namespace](https://docs.djangoproject.com/pt-br/1.11/topics/http/urls/#url-namespaces) para melhor definir a organização das URLs que eventualmente possam ter o mesmo nome em apps distintas e que poderão ser referenciadas por seu namespace (ex. core:home).
+
+```Python
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^', include('simplemooc.core.urls', namespace='core')),
+]
+```
+
+No arquivo ```base.html``` para usar o namespace, usa-se o nome do namespace seguido de ```:``` e o nome da view.
+
+```Django
+<li class="pure-menu-selected"><a href="{% url 'core:home' %}">Início</a></li>
+<li><a href="{% url 'core:contact' %}">Contato</a></li>
+```
