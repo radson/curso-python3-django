@@ -8,11 +8,13 @@ class Course(models.Model):
     description = models.TextField("Descrição", blank=True)
     start_date = models.DateField(
         "Data de Início", auto_now=False, auto_now_add=False, null=True, blank=True)
-    image = models.ImageField("Imagem", upload_to='courses/images',
-                              height_field=None, width_field=None, max_length=None)
+    image = models.ImageField(upload_to='courses/images', verbose_name="Imagem",
+                              height_field=None, width_field=None, max_length=None,
+                              null=True, blank=True)
     created_at = models.DateTimeField(
         "Criado em", auto_now=False, auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True, auto_now_add=False)
+    update_at = models.DateTimeField(
+        'Atualizado em', auto_now=True, auto_now_add=False)
 
     class Meta:
         verbose_name = "course"

@@ -56,3 +56,59 @@ O final gerar as migrations
 python manage.py makemigrations
 python manage.py migrate
 ```
+## 13. Métodos do Model
+
+### Objetivos
+
+* Criar o gerenciamento de usuários, inicialmente feito via dentro da própria app e depois utilizando o disponível no Django
+
+### Etapas
+
+No model Course, modificar no campo image os parametros verbose_name, null, blank.
+
+```Python
+image = models.ImageField(upload_to='courses/images', verbose_name="Imagem",
+                            height_field=None, width_field=None, max_length=None,
+                            null=True, blank=True)
+```
+
+Após modificar o model executar a migration
+
+```Shell
+python manage.py makemigrations
+python manage.py migrate
+```
+
+Com as migrations aplicadas, pode-se acessar o shell do projeto para instânciar o model e incluir novos registros
+
+```Shell
+python manage.py shell
+```
+
+Um prompt iterativo carregando as settings do projeto será executado, neste prompt pode-se executar os comandos:
+
+```Python
+from simplemooc.courses.models import Course
+course = Course()
+course.name = "Python na Web com Django"
+from datetime import date
+course.start_date = date.today()
+course.save()
+course.id
+course.pk
+```
+
+O método save() faz parte da classe Models. O ID do registro é setado automaticamente não sendo necessário informar, podendo ser acessado pela propriedade id ou pk.
+
+Para alterar, por exemplo a propriedade name, ainda na mesma sessão, basta atribuir o novo valor e o método ```save()```, o Django irá entender que se trata de uma atualização e fará um UPDATE no banco de dados.
+
+```Python
+course.name = "Python com Django"
+course.save()
+```
+
+Para a exclusão do registro, usa-se o ```delete()```
+
+```Python
+course.delete()
+```
