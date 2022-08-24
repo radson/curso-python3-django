@@ -112,3 +112,56 @@ Para a exclusão do registro, usa-se o ```delete()```
 ```Python
 course.delete()
 ```
+
+## 14. Model objects
+
+### Objetivos
+
+* Utilizar o recurso de Querysets
+
+### Etapas
+
+Continuando o exemplo da aula anterior, acessar o shell do Django e inserir ao menos 2 registros
+
+```Python
+django = Course(name="Python com Django", slug="django")
+django.save()
+django.pk
+python_dev = Course(name="Python para Devs", slug="python-dev")
+python_dev.save()
+python_dev.pk
+```
+
+Agora será feito o uso dos objects da classe Model, que é um gerenciador conforme consta na documentação:
+
+>Um “manager” é a interface através da qual as consultas de banco de dados são fornecidas para os modelos do Django. Pelo menos um Manager existe para cada modelo em uma aplicação Django.
+[Django Doc - Managers](https://docs.djangoproject.com/pt-br/1.11/topics/db/managers/)
+
+O método ```all()``` retorna a referência a todos os objetos do model. O Django utiliza o conceito de lazy load, então os registros só serão consultados no banco de dados quando são realmente acessados.
+
+```Python
+courses = Course.objects.all()
+for course in courses:
+    print(course.name)
+```
+
+Outro recurso é o ```filter()``` que permite filtrar os objetos de acordo com as propriedades inseridas como parametros do método. No exemplo a seguir irá retornar um Queryset com apenas um registo que corresponde ao filtro.
+
+```Python
+courses = Course.objects.filter(slug='django')
+print(courses)
+```
+O Django permite que o  ```filter()``` seja aninhado com outro ```filter()``` e que mais de um parametro da busca sejam informados separados por vírgula. 
+Outro recurso é o [filtro de campos](https://docs.djangoproject.com/pt-br/1.11/topics/db/queries/#field-lookups) que permite realizar o mesmo que a cláusula WHERE do SQL. No exemplo a segui será usado o ```icontais``` para busca textual no campo ```name``` ignorando o tipo de caixa.
+
+```Python
+courses = Course.objects.filter(name__icontains='python')
+print(courses)
+```
+
+Cada QuerySet tem um método ```delete()```, o qual [deleta](https://docs.djangoproject.com/pt-br/1.11/topics/db/queries/#deleting-objects) todos os membros daquele QuerySet.
+
+```Python
+courses.delete()
+Course.objects.all()
+```
