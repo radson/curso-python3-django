@@ -251,3 +251,20 @@ class CourseAdmin(admin.ModelAdmin):
 
 admin.site.register(Course, CourseAdmin)
 ```
+
+## 18. Fazendo o CRUD no Admin
+
+### Objetivos
+
+* Personalizar a interface de administração para incluir e modificar registros melhorando alguns campos.
+
+### Etapas
+
+Na classe ```CourseAdmin``` adicionar a propriedade [prepopulated_fields](https://docs.djangoproject.com/en/1.11/ref/contrib/admin/#django.contrib.admin.ModelAdmin.prepopulated_fields) para que o campo slug seja gerado automaticamente a partir do campo ```name```. Mais de um campo pode ser especificado.
+
+```Python
+class CourseAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'slug': ('name',)}
+
+```
+Ao criar um novo registro, enquanto é preenchido o campo Nome, o campo 'Atalho' vai sendo preenchido automaticamente.
