@@ -24,8 +24,9 @@ class Course(models.Model):
         'Atualizado em', auto_now=True, auto_now_add=False)
 
     class Meta:
-        verbose_name = "course"
-        verbose_name_plural = "courses"
+        verbose_name = "Curso"
+        verbose_name_plural = "Cursos"
+        ordering = ['name']
 
     def __str__(self):
         return self.name

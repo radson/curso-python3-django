@@ -222,3 +222,32 @@ admin.site.register(Course)
  def __str__(self):
     return self.name
 ```
+
+## 17. Model Admin
+
+### Objetivos
+
+* Modificar algumas configurações na aplicação Admin para melhor exibição das informações das apps, para isso será utilizada a classe [Meta](https://docs.djangoproject.com/pt-br/3.2/ref/models/options/)
+
+### Etapas
+
+No arquivo ```models.py``` adicionar na classe Course a classe Meta e definir as propriedades ```verbose_name``` e ```verbose_name_plural``` para definir como deve ser a exição dos respectivos nomes da classe em vez da padrão que o Django iria utilizar. Além disso a proprierade ```ordering``` para definir qual campo e como deverá ocorrer a ordenação dos registros.
+
+```Python
+class Course(models.Model):
+
+    class Meta:
+        verbose_name = "Curso"
+        verbose_name_plural = "Cursos"
+        ordering = ['name']
+```
+
+Outra forma de personalizar é definir quais campos devem aparecer na interface do Django Admin. Para isso define-se no arquivo ```admin.py``` uma classe herdando de ```admin.ModelAdmin``` onde são declaradas as propriedades, no casos para definir os campos na listagem de registros, utiliza-se ```list_display```. A propriedade ```search_fields``` permite espeficiar na listagem quais campos poderão ser pesquisados. Por fim, deve-se registrar a nova classe com o espectivo model.
+
+```Python
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'start_date', 'created_at']
+    search_fields = ['name', 'slug']
+
+admin.site.register(Course, CourseAdmin)
+```
