@@ -165,3 +165,36 @@ Cada QuerySet tem um método ```delete()```, o qual [deleta](https://docs.django
 courses.delete()
 Course.objects.all()
 ```
+
+
+## 15. Custom Manager
+
+### Objetivos
+
+* Aprofundar o conhecimento sobre os managers e querysets
+
+### Etapas
+
+Criar uma nova classe no models.py para implementar um método de busca utilizando ```get_queryset``` e o recurso de field_lookup nos campos name ou description. Para implementar o OU do SQL utiliza-se a [classe Q](https://docs.djangoproject.com/pt-br/3.2/ref/models/querysets/#q-objects)
+
+```Python
+class CourseManager(models.Manager):
+
+    def search(self, query):
+        return self.get_queryset().filter(models.Q(name__icontains=query) |
+                                          models.Q(description__icontains=query))
+```
+
+Na classe Courses, alterar para usar o Manager customizado em vez do padrão do Django:
+
+```Python
+class Course(models.Model):
+
+    objects = CourseManager()
+```
+
+Para testar, utilizando o shell e considerando os registros inseridos nas aulas anteriores. Esta consulta deverá retornar ao menos 2 objetos (aula anterior)
+
+```Python
+Course.objects.search('python')
+```

@@ -1,6 +1,13 @@
 from django.db import models
 
 
+class CourseManager(models.Manager):
+
+    def search(self, query):
+        return self.get_queryset().filter(models.Q(name__icontains=query) |
+                                          models.Q(description__icontains=query))
+
+
 class Course(models.Model):
 
     name = models.CharField("Nome", max_length=100)
@@ -25,3 +32,5 @@ class Course(models.Model):
 
     def get_absolute_url(self):
         return reverse("course_detail", kwargs={"pk": self.pk})
+
+    objects = CourseManager()
