@@ -198,3 +198,27 @@ Para testar, utilizando o shell e considerando os registros inseridos nas aulas 
 ```Python
 Course.objects.search('python')
 ```
+
+## 16. Admin Básico
+
+### Objetivos
+
+* Conhecer o Django Admin, uma aplicação que já vem no Django que fornece uma forma bem simples para fazer o CRUD dos models
+
+### Etapas
+
+O Django Admin já vem habilitado no INSTALLED_APPS do settings.py e a url já está pre-configurada no urls.py.
+
+Os models devem ser registrados no arquivo ```admin.py``` que cada aplicação tem, será realizado no admin.py da aplicação courses
+
+```Python
+from .models import Course
+admin.site.register(Course)
+ ```
+
+ Ao rodar a aplicação com o ```runserver``` acessar no navegador a url ```http://localhosr:8000/admin``` e inserir as credenciais cadastradas na etapa anterior. A classe Course é listada entre as aplicações disponíveis e os registros que estão no banco de dados. Em versões anteriores do Django era necessário definir o método ```__str__``` retornando o(s) campo(s) do model para melhor representação da classe, por exemplo o campo name. [Model instance reference](https://docs.djangoproject.com/pt-br/3.2/ref/models/instances/#str)
+
+ ```Python
+ def __str__(self):
+    return self.name
+```
