@@ -175,7 +175,7 @@ Course.objects.all()
 
 ### Etapas
 
-Criar uma nova classe no models.py para implementar um método de busca utilizando ```get_queryset``` e o recurso de field_lookup nos campos name ou description. Para implementar o OU do SQL utiliza-se a [classe Q](https://docs.djangoproject.com/pt-br/3.2/ref/models/querysets/#q-objects)
+Criar uma nova classe no models.py para implementar um método de busca utilizando ```get_queryset``` e o recurso de field_lookup nos campos name ou description. Para implementar o OU do SQL utiliza-se a [classe Q](https://docs.djangoproject.com/pt-br/1.11/ref/models/querysets/#q-objects)
 
 ```Python
 class CourseManager(models.Manager):
@@ -216,7 +216,7 @@ from .models import Course
 admin.site.register(Course)
  ```
 
- Ao rodar a aplicação com o ```runserver``` acessar no navegador a url ```http://localhosr:8000/admin``` e inserir as credenciais cadastradas na etapa anterior. A classe Course é listada entre as aplicações disponíveis e os registros que estão no banco de dados. Em versões anteriores do Django era necessário definir o método ```__str__``` retornando o(s) campo(s) do model para melhor representação da classe, por exemplo o campo name. [Model instance reference](https://docs.djangoproject.com/pt-br/3.2/ref/models/instances/#str)
+ Ao rodar a aplicação com o ```runserver``` acessar no navegador a url ```http://localhosr:8000/admin``` e inserir as credenciais cadastradas na etapa anterior. A classe Course é listada entre as aplicações disponíveis e os registros que estão no banco de dados. Em versões anteriores do Django era necessário definir o método ```__str__``` retornando o(s) campo(s) do model para melhor representação da classe, por exemplo o campo name. [Model instance reference](https://docs.djangoproject.com/pt-br/1.11/ref/models/instances/#str)
 
  ```Python
  def __str__(self):
@@ -227,7 +227,7 @@ admin.site.register(Course)
 
 ### Objetivos
 
-* Modificar algumas configurações na aplicação Admin para melhor exibição das informações das apps, para isso será utilizada a classe [Meta](https://docs.djangoproject.com/pt-br/3.2/ref/models/options/)
+* Modificar algumas configurações na aplicação Admin para melhor exibição das informações das apps, para isso será utilizada a classe [Meta](https://docs.djangoproject.com/pt-br/1.11/ref/models/options/)
 
 ### Etapas
 
