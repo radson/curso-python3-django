@@ -77,3 +77,42 @@ No template adicionar um laço for iterando nos registros passados pelo contexto
     {{ course.description|linebreaks }}
 {% endfor %}
 ```
+
+## 21. Trabalhando com as imagens dos cursos
+
+### Objetivos
+
+* Incrementar o template utilizando mais recursos para exibir a página para o curso
+
+### Etapas
+
+* Adicionar imagem para o curso, utilizar uma imagem padrão quando não for fornecida uma.
+* Imagem estática no caminho ```core/static/img/course-image.png```
+* No arquivo ```index.html``` adicionar uma verificação, caso exista uma imagem setada pegar do model ou pegar a estática
+
+```Django
+{% load static %}
+
+{% if course.image %}
+    <img src="{{ course.image.url }}" alt="{{ course.name }}">
+{% else %}
+    <img src="{% static 'img/course-image.png' %}" alt="{{ course.name }}/>
+{% endif %}
+```
+
+* No caso haja arquivos de imagem inseridos via form, será necessário definir a estrutura para servir estes arquivos estáticos.
+* No arquivo do projeto ```settings.py``` definir o caminho da URL para arquivos de mídia
+
+```Python
+MEDIA_URL = '/media/'
+```
+
+* No arquivo ```urls.py``` do projeto, inserir uma verificação para quando estiver em modo DEBUG incluir mais uma URL:
+
+```Python
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
