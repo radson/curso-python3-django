@@ -165,3 +165,67 @@ def details(request, pk):
 
 * Criar o arquivo ```details.html``` no diretório de templates da app courses
 
+## 23. Exibindo o curso
+
+### Objetivos
+
+* Realizar a exibição das informações do curso e tratamento de erros
+
+### Etapas
+
+* Alterar a view details, substituindo o uso do manager do objeto Course pelo atalho get
+
+```Python
+from django.shortcuts import get_object_or_404
+
+def details(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    # ...
+```
+
+* No arquivo de template ```details.html``` declarar as propriedades que serão exibidas.
+
+```Django
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="splash">
+    <div class="pure-g-r">
+        <div class="pure-u-1">
+            <div class="l-box splash-text">
+                <h1 class="splash-head">
+                    {{ course }}
+                </h1>
+                <h2 class="splash-subhead">
+                    {{ course.description }}
+                </h2>
+                <p>
+                    <a href="#" class="pure-button primary-button">Inscreva-se</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-2-3">
+        <div class="l-box">
+            <h4 class="content-subhead">Sobre o curso</h4>
+            {{ course.about|linebreaks }}
+        </div>
+    </div>
+    <div class="pure-u-1-3">
+        <div class="l-box">
+            {% if course.image %}
+                <img src="{{ course.image.url }}" alt="{{ course.name }}" />
+            {% else %}
+                <img src="{% static 'img/course-image.png' %}" alt="{{ course.name }}" />
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+O uso do [linebreak](https://docs.djangoproject.com/en/1.8/ref/templates/builtins/#linebreaks) serve para transformar as quebras de linha em HTML.
