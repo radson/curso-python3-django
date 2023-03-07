@@ -46,3 +46,34 @@ O conteúdo do arquivo index.html deve extender do template base e definir um bl
 
 {% endblock content %}
 ```
+
+## 20. Listagem dos Cursos
+
+### Objetivos
+
+* Criar uma página de listagem dos cursos trazendo as informações do banco de dados
+
+### Etapas
+
+* Na views do módulo course importar os models de curso e incrementar no método index a consulta ao model e um contexto a ser passado para o template com os registros retornados.
+
+```Python
+from .models import Course
+
+def index(request):
+    courses = Course.objects.all()
+    template_name = 'courses/index.html'
+    context = {
+        'courses': courses
+    }
+    return render(request, template_name, context)
+```
+
+No template adicionar um laço for iterando nos registros passados pelo contexto e acessando as propriedades mapeadas no model
+
+```Django
+{% for course in courses  %}
+    {{ course.name }}
+    {{ course.description|linebreaks }}
+{% endfor %}
+```
