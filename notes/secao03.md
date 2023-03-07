@@ -94,9 +94,9 @@ No template adicionar um laço for iterando nos registros passados pelo contexto
 {% load static %}
 
 {% if course.image %}
-    <img src="{{ course.image.url }}" alt="{{ course.name }}">
+    <img src="{{ course.image.url }}" alt="{{ course.name }}" />
 {% else %}
-    <img src="{% static 'img/course-image.png' %}" alt="{{ course.name }}/>
+    <img src="{% static 'img/course-image.png' %}" alt="{{ course.name }}" />
 {% endif %}
 ```
 
@@ -116,3 +116,52 @@ from django.conf.urls.static import static
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
+
+## 22. Página do curso
+
+### Objetivos
+
+* Criar a página de exibição do detalhe do curso
+
+### Etapas
+
+* No models incluir o campo ```about``` para a classe Courses que deverá ser um campo com uma descrição mais detalhada do curso.
+
+```Python
+class Course(models.Model):
+
+    # ... declarações anteriores
+    about = models.TextField("Sobre o curso", blank=True)
+```
+
+* Após modificar o model deve-se gerar e aplicar as migrations
+
+```Shell
+python manager.py makemigrations
+python manager.py migrate
+```
+
+* No arquivo de urls da app courses, adicionar nova rota para página de detalhes do curso.
+
+```Python
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
+    url(r'^(?P<pk>\d+)/$', views.details, name='details')
+]
+```
+
+* No arquivo de views, adicionar nova view como a seguir:
+
+```Python
+def details(request, pk):
+    course = Course.objects.get(pk=pk)
+    context = {
+        'course': course
+    }
+    template_name = 'courses/details.html'
+
+    return render(request, template_name, context)
+```
+
+* Criar o arquivo ```details.html``` no diretório de templates da app courses
+
