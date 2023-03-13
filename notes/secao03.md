@@ -288,3 +288,14 @@ No arquivo ```index.html``` do template agora pode-se atualizar as propriedades 
 ```
 
 Essa é uma forma padronizada de trabalhar com URLs em aplicações Django, alguns aplicativos de terceiros esperam essa funcionalidade implementada, a exemplo da interface de administração do Django que mostra o botão *View on site* quando se está acessando a página de algum objeto que tem o ```get_absolute_url``` implementado.
+
+## 25. Introdução do Django Form
+
+### Objetivos
+
+* Breve introdução sobre o sistema de formulários do Django.
+
+### Etapas
+
+* O Django possui uma engine que faz processamento, exibição do HTML e validação dos dados. Além disso há o recurso de arquivos de media para ser utilizado em campos personalizados.
+
