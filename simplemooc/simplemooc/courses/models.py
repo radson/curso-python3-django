@@ -24,6 +24,10 @@ class Course(models.Model):
     update_at = models.DateTimeField(
         'Atualizado em', auto_now=True, auto_now_add=False)
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ("courses:details", (), {"slug": self.slug})
+
     class Meta:
         verbose_name = "Curso"
         verbose_name_plural = "Cursos"
@@ -31,8 +35,5 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
-
-    def get_absolute_url(self):
-        return reverse("course_detail", kwargs={"pk": self.pk})
 
     objects = CourseManager()

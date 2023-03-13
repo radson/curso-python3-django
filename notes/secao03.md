@@ -229,3 +229,62 @@ def details(request, pk):
 ```
 
 O uso do [linebreak](https://docs.djangoproject.com/en/1.8/ref/templates/builtins/#linebreaks) serve para transformar as quebras de linha em HTML.
+
+## 24. Usando Slug no Curso
+
+### Objetivos
+
+* Uso do Slug na url para acessar o curso em substituição do ID do registro no banco de dados.
+
+### Etapas
+
+* Mudar a rota anteriormente definida para uma expressão regular que recebe o parametro ```slug``` que aceita letras, hífen e underline.
+
+```Python
+urlpatterns = [
+    # url(r'^(?P<pk>\d+)/$', views.details, name='details')
+    url(r'^(?P<slug>[\w_-]+)/$', views.details, name='details')
+]
+```
+
+* No arquivo de views, alterar para receber o parametro ```slug``` e passar para a consulta no banco de dados:
+
+```Python
+def details(request, slug):
+    course = get_object_or_404(Course, slug=slug)
+    context = {
+        'course': course
+    }
+    template_name = 'courses/details.html'
+
+    return render(request, template_name, context)
+```
+
+* Para testar acessar na url ```http://localhost:8000/cursos/slug``` onde a string ```slug``` deve ser igual ao cadastrado para o curso (usar do Django Admin para consultar)
+
+* Para o melhor mapeamento das URLs o Django recomenda o uso do método ```get_absolute_url``` dentro do model para retornar a URL canonica de um objeto, mais detalhes na [documentação]:(https://docs.djangoproject.com/en/1.8/ref/models/instances/#get-absolute-url). Adicionalmente deve-se utilizar o decorator ```@model.permalink``` para o Django realizar o retorno da URL do objeto.
+
+```Python
+class Course(models.Model):
+    # ...
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ("courses:details", (), {"slug": self.slug})
+```
+
+No arquivo ```index.html``` do template agora pode-se atualizar as propriedades href com a URL implementada
+
+```Django
+<a href="{{ course.get_absolute_url }}">
+    {% if course.image %}
+        <img src="{{ course.image.url }}" alt="{{ course.name }}" />
+    {% else %}
+        <img src="{% static 'img/course-image.png' %}" alt="{{ course.name }}" />
+    {% endif %}
+</a>
+<!-- ... -->
+<h4 class="content-subhead"><a href="{{ course.get_absolute_url }}" title="{{ course.name }}">{{ course.name }}</a></h4>
+```
+
+Essa é uma forma padronizada de trabalhar com URLs em aplicações Django, alguns aplicativos de terceiros esperam essa funcionalidade implementada, a exemplo da interface de administração do Django que mostra o botão *View on site* quando se está acessando a página de algum objeto que tem o ```get_absolute_url``` implementado.
