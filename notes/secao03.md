@@ -499,3 +499,65 @@ Message-ID: <20230327143106.15905.26092@dellg7>
 Mensagem
 -------------------------------------------------------------------------------
 ```
+
+## 29. Integrando o envio de e-mail com Form
+
+### Objetivos
+
+* Implementando o envio de e-mail no form de contato
+
+### Etapas
+
+No arquivo ```settings.py``` devem ser configuradas as demais variáveis para envio de e-mail via SMTP. Adicionalmente foi criada uma variável CONTACT_EMAIL que deverá receber os emails enviados.
+
+```Python
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'Contato <contato@simplemooc.com>'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'simplemooc@gmail.com'
+EMAIL_HOST_PASSWORD = 'senha'
+
+CONTACT_EMAIL = 'contato@simplemooc.com'
+```
+
+No arquivo   ```forms.py``` é onde deve ficar a lógica de envio de e-mails (uma boa prática para que as views cuidem apenas da exibição). Para isso adicionar o método ```send_mail(self, course)``` que recebe um curso como parâmetro. Deve-se importar o método ```send_mail``` e para acessa as settings do projeto importar ```settings```.
+
+```Python
+from django.core.mail import send_mail
+from django.conf import settings
+
+class ContactCourse(forms.Form):
+    # omitido código do form
+
+    def send_mail(self, course):
+        subject = '[%s] Contato' % course
+        message = 'Nome: %(name)s;Email: %(email)s;%(message)s'
+        context = {
+            'name': self.cleaned_data['name'],
+            'email': self.cleaned_data['email'],
+            'message': self.cleaned_data['message'],
+        }
+        message = message % context
+
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [settings.CONTACT_EMAIL])
+```
+
+Na view, após validação do form, deve-se invocar o método implementado passando o curso
+
+```Python
+def details(request, slug):
+    # omitido código inalterado
+
+    if request.method == 'POST':
+        form = ContactCourse(request.POST)
+        if form.is_valid():
+            context['is_valid'] = True
+            form.send_mail(course)
+            form = ContactCourse()
+    else:
+        form = ContactCourse()
+
+    # omitido código inalterado
+```
