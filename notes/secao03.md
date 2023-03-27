@@ -299,3 +299,66 @@ Essa é uma forma padronizada de trabalhar com URLs em aplicações Django, algu
 
 * O Django possui uma engine que faz processamento, exibição do HTML e validação dos dados. Além disso há o recurso de arquivos de media para ser utilizado em campos personalizados.
 
+## 26. Form de Contato do Curso
+
+### Objetivos
+
+* Criar um form para tirar dúvidas sobre o curso.
+
+### Etapas
+
+* Criar um arquivo ```forms.py``` na app de cursos. O form é uma classe que herda de django.forms.
+
+```Python
+from django import forms
+
+class ContactCourse(forms.Form):
+    name = forms.CharField(label='Nome', max_length=100)
+    email = forms.EmailField(label='E-mail')
+    message = forms.CharField(label='Mensagem/Duvida', widget=forms.Textarea)
+```
+
+Com o shell do Django é possível validar o uso dos forms
+
+```Shell
+./manage.py shell
+```
+
+No prompt de comandos interativo do Django executar os comandos:
+
+```Python
+from simplemooc.courses.forms import ContactCourse
+
+form = ContactCourse()
+
+print(form.as_p())
+```
+
+O método ```as_p()``` irá exibir os campos do form dentro de tags <p>
+
+```Html
+<p><label for="id_name">Nome:</label> <input type="text" name="name" maxlength="100" required id="id_name" /></p>
+<p><label for="id_email">E-mail:</label> <input type="email" name="email" required id="id_email" /></p>
+<p><label for="id_message">Mensagem/Duvida:</label> <textarea name="message" cols="40" rows="10" required id="id_message">
+</textarea></p>
+```
+
+Criando um dicionário para submeter ao form e verificando se os dados são válidos
+
+```Python
+data = {'name': 'radson', 'email': 'radson@rass.tech'}
+
+form = ContactCourse(data)
+
+form.is_valid()
+
+form.errors
+```
+
+O método ```is_valid()``` irá retornar  ```False``` e a propriedade ```errors``` irá retornar um dicionário dos essos para cada campo.
+
+```Python
+{'message': ['This field is required.']}
+```
+
+
