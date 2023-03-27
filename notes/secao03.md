@@ -361,4 +361,63 @@ O método ```is_valid()``` irá retornar  ```False``` e a propriedade ```errors`
 {'message': ['This field is required.']}
 ```
 
+## 27. Form no Template
 
+### Objetivos
+
+* Implementar o form nos templates.
+
+### Etapas
+
+Na view do curso, método datails, inserir no contexto a classe ContactForm. Deverá ser verificado se o request é um GET ou POST para decidir se a classe ContactForm será instanciada vazia ou com os dados submetidos.
+
+```Python
+from .forms import ContactCourse
+
+def details(request, slug):
+    course = get_object_or_404(Course, slug=slug)
+
+    if request.method == 'POST':
+        form = ContactCourse(request.POST)
+    else:
+        form = ContactCourse()
+
+    context = {
+        'course': course,
+        'form': form
+    }
+    template_name = 'courses/details.html'
+
+    return render(request, template_name, context)
+```
+
+No template, adicionar o form usando a linguagem de template. Para este exemplo foi utilizada exibição customizada onde os campos podem ser trabalhados invidualmente, porém o Django fornece uma exibição padrão apenas especificando a variável recebida pelo contexto. 
+
+```Django
+<div class="pure-g-r content-ribbon" id="contato">
+    <div class="pure-u-1">
+        <h3>Tire sua dúvida sobre o Curso</h3>
+        <form class="pure-form pure-form-aligned" method="POST">
+            {% csrf_token %}
+            <fieldset>
+                {% for field  in form  %}
+                    <div class="pure-control-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.erros  %}
+                            <ul class="errorlist">
+                                {% for error  in field.erros %}
+                                    <li>{{error}}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <div class="pure-controls">
+                    <button type="submit" class="pure-button pure-button-primary">Enviar</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+```
