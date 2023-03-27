@@ -462,7 +462,7 @@ Exibindo a váriável de contexto para quando o form é válido.
 {% endif %}
 ```
 
-## 28. Introdução ao Envio de E-mail
+## 29. Introdução ao Envio de E-mail
 
 ### Objetivos
 
@@ -500,7 +500,7 @@ Mensagem
 -------------------------------------------------------------------------------
 ```
 
-## 29. Integrando o envio de e-mail com Form
+## 30. Integrando o envio de e-mail com Form
 
 ### Objetivos
 
@@ -560,4 +560,70 @@ def details(request, slug):
         form = ContactCourse()
 
     # omitido código inalterado
+```
+
+## 31. Organizando o envio de E-mail com Templates
+
+### Objetivos
+
+* Criar um template de email para centralizar o envio de email na app.
+
+### Etapas
+
+Na app core criar um arquivo ```mail.py``` com o seguinte conteúdo:
+
+```Python
+from django.template.loader import render_to_string
+from django.template.defaultfilters import striptags
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+
+
+def send_mail_template(subject, template_name, context, recipient_list,
+                       from_email=settings.DEFAULT_FROM_EMAIL, fail_silently=False):
+
+    message_html = render_to_string(template_name, context)
+    message_text = striptags(message_html)
+
+    email = EmailMultiAlternatives(
+        subject=subject, body=message_text, from_email=from_email,
+        to=recipient_list
+    )
+
+    email.attach_alternative(message_html, "text/html")
+    email.send(fail_silently=fail_silently)
+```
+
+* ```render_to_string```: Faz a renderização de um template em formato string
+* ```striptags```: Remove as tags HTML da string gerada
+* ```EmailMultiAlternatives```: Uma classe que cria um e-mail com conteúdo alternativo (padrão em texto, alternativo em HTML)
+
+Criar um novo template para o e-mail de contato em ```courses/templates/courses/contact_email.html``` com o conteúdo:
+
+```Django
+<p><strong>Nome</strong>: {{ name }}</p>
+<p><strong>E-mail</strong>: {{ email }}</p>
+{{ message | linebreaks}}
+```
+
+No arquivo ```forms.py``` atualizar o método ```send_mail```, onde é removida a variável da mensagem e é adicionado o template criado.
+
+```Python
+from simplemooc.core.mail import send_mail_template
+
+class ContactCourse(forms.Form):
+    # omitido código inalterado
+
+    def send_mail(self, course):
+        subject = '[%s] Contato' % course
+        context = {
+            'name': self.cleaned_data['name'],
+            'email': self.cleaned_data['email'],
+            'message': self.cleaned_data['message'],
+        }
+
+        template_name = 'courses/contact_email.html'
+
+        send_mail_template(subject, template_name, context,
+                           [settings.CONTACT_EMAIL])
 ```
