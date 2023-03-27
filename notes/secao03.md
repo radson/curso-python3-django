@@ -421,3 +421,43 @@ No template, adicionar o form usando a linguagem de template. Para este exemplo 
     </div>
 </div>
 ```
+
+## 28. Submetendo o Form do Curso
+
+### Objetivos
+
+* Implementar o form na view.
+
+### Etapas
+
+No metodo details, será adicionada verificação se o form é válido com o método ```is_valid()```. Quando os dados são válidos, devem ser acessados apenas no dicionário ```cleaned_data``` que contem os dados validados e convertidos para tipos de dados do Python. Para facilitar o entendimento foi passada a variável de ambiente ```is_valid``` para ser exibida no template quando o form estiver válido e no console será impresso os dados já validados.
+
+```Python
+def details(request, slug):
+    course = get_object_or_404(Course, slug=slug)
+    context = {}
+
+    if request.method == 'POST':
+        form = ContactCourse(request.POST)
+        if form.is_valid():
+            context['is_valid'] = True
+            print(form.cleaned_data['name'])
+            print(form.cleaned_data['message'])
+            form = ContactCourse()
+    else:
+        form = ContactCourse()
+
+    context['course'] = course
+    context['form'] = form
+
+    # restante do código já implementado
+```
+
+Exibindo a váriável de contexto para quando o form é válido.
+
+```Django
+<h3>Tire sua dúvida sobre o Curso</h3>
+{% if is_valid %}
+    <p>Formulário enviado com sucesso</p>
+{% endif %}
+```
