@@ -461,3 +461,41 @@ Exibindo a váriável de contexto para quando o form é válido.
     <p>Formulário enviado com sucesso</p>
 {% endif %}
 ```
+
+## 28. Introdução ao Envio de E-mail
+
+### Objetivos
+
+* Introdução ao sistema de envio de email do Django
+
+### Etapas
+
+O Django provê o mecanismo de e-mail backend para fazer um processamento/armazenamento do e-mail antes do envio. O mais comum é o uso de um SMTP para envio de e-mail, porém para esse exemplo inicialmente será usado o backend ```console```, que deverá ser configurado no arquivo ```settings.py```.
+
+```Python
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+```
+
+No shell pode ser feito o seguinte teste
+
+```Python
+from django.core.mail import send_mail
+
+send_mail('Assunto', 'Mensagem', 'sender@localhosts.local', ['receiver1@localhosts.local', 'receiver2@localhosts.local'])
+```
+
+O resultado será como a seguir. Com o backend console o e-mail em vez de ser enviado é apenas impresso no console.
+
+```
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Assunto
+From: sender@localhosts.local
+To: receiver1@localhosts.local, receiver2@localhosts.local
+Date: Mon, 27 Mar 2023 14:31:06 -0000
+Message-ID: <20230327143106.15905.26092@dellg7>
+
+Mensagem
+-------------------------------------------------------------------------------
+```
