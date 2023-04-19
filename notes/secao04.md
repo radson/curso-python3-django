@@ -302,3 +302,52 @@ class RegisterForm(UserCreationForm):
 
         return email
 ```
+
+## 38. View de Logout
+
+### Objetivos
+
+* Implementar uma view de logout aproveitando os recursos disponíveis no pacote auth.
+* Implementar o auto login após o cadastro do usuário
+
+### Etapas
+
+No ```urls.py``` da app Account, adicionar nova rota para logout. No dicionário que a função logout do pacote auth recebe, passar o redirecionamento que deverá ser a home do site. 
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração ...
+    url(r'^sair/$', login_views.logout, {'next_page': 'core:home'}, name='logout'),
+]
+```
+
+Na view do app Account importar os métodos ```authenticate``` e ```login``` que irão realizar a autenticação do usuário criado e o login colocando na variável de sessão as informações do user logado.
+
+```Python
+# omitido código sem alteração ...
+from django.contrib.auth import authenticate, login
+
+def register(request):
+    # omitido código sem alteração ...
+        if form.is_valid():
+            user = form.save()
+            user = authenticate(
+                username=user.username, password=form.cleaned_data['password1']
+            )
+            login(request, user)
+
+            return redirect('core:home')
+```
+
+No arquivo ```base.html``` ajustar o menu de links para verificar se o user está logado e oferecer a opção adequada Entrar ou Sair.
+
+```Django
+<!-- omitido código sem alteração -->
+ <li><a href="{% url 'core:contact' %}">Contato</a></li>
+
+{% if user.is_authenticated %}
+    <li><a href="{% url 'accounts:logout' %}">Sair</a></li>
+{% else %}
+    <li><a href="{% url 'accounts:login' %}">Entrar</a></li>
+{% endif %}
+```
