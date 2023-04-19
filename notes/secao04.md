@@ -128,3 +128,98 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_URL = 'accounts:logout'
 ```
+
+## 35. Form de Cadastro
+
+### Objetivos
+
+* Criar um form para cadastro do usuário com os recursos fornecidos pelo Django
+
+### Etapas
+
+No app ```accounts``` adicionar a estrutura de templates onde deverá ser criado o template ```register.html```.
+
+```Shell
+> simplemooc/accounts/templates/accounts/register.html
+```
+
+O arquivo ```register.html``` irá utilizar o ```form``` do pacote ```auth``` do Django e deve ter o seguinte conteúdo:
+
+```Jinja
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-1">
+        <h2>Informe seus dados</h2>
+        <form action="" class="pure-form pure-form-aligned" method="post">
+            {% csrf_token %}
+            <fieldset>
+                {{ form.non_field_errors }}
+
+                {% for field in form %}
+                    <div class="pure-control-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {{ field.erros }}
+                    </div>
+                {% endfor %}
+
+                <div class="pure-controls">
+                    <button type="submit" class="pure-button pure-button-primary">
+                        Cadastrar
+                    </button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+No arquivo ```login.html``` adicionar o link que irá apontar para a rota de cadastro.
+
+```Html
+<!-- omitido código sem alteração -->
+<p>
+    Não é cadastrado? <a href="{% url 'accounts:register' %}" title="">Cadastre-se</a><br>
+</p>
+```
+
+No arquivo  ```urls.py``` do app Accounts, adicionar nova rota para a view que será criada.
+
+```Python
+from . import views
+
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^cadastre-se/$', views.register, name='register'),
+]
+```
+
+Por fim, o arquivo de views do app Accounts deve conter a view ```register```, que irá usar o método ```UserCreationForm``` do pacote ```forms``` do Django. Será realizado o redirecionamento quando o login for válido, conforme definido no ```settings.py```. O conteúdo ficará:
+
+```Python
+from django.shortcuts import render, redirect
+from django.conf import settings
+
+from django.contrib.auth.forms import UserCreationForm
+
+def register(request):
+    template_name = 'accounts/register.html'
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(settings.LOGIN_URL)
+    else:
+        form = UserCreationForm()
+
+    context = {
+        'form': form
+    }
+
+    return render(request, template_name, context)
+```
