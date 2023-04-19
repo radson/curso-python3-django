@@ -223,3 +223,53 @@ def register(request):
 
     return render(request, template_name, context)
 ```
+
+## 36. Custom Form de Cadastro
+
+### Objetivos
+
+* Customizar o form de cadastro para incluir o campo e-mail.
+
+### Etapas
+
+No app ```accounts``` adicionar ```forms.py``` que irá conter a definição do formulário personalizado com campo de e-mail herdendo de ```UserCreationForm```.
+
+```Shell
+> simplemooc/accounts/templates/accounts/register.html
+```
+ O conteúdo do ```forms.py``` conterá uma classe ```RegisterForm``` declarando o campo ```email``` e um método ```save``` que sobrescreve o metodo do objeto herdado.
+
+```Python
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(label='E-mail')
+
+    # Metodo save para substituir o save do UserCreationForm
+    def save(self, commit=True):
+        #Passando commit False o save retorna o objeto user e não salva no banco
+        user = super(RegisterForm, self).save(commit=False)
+        user.email = self.cleaned_data['email']
+
+        if commit:
+            user.save()
+
+        return user
+```
+
+Na view, altera-se o import do ```UserCreationForm``` para o recem criado ```RegisterForm```.
+
+```Python
+# omitido código sem alteração ...
+from .forms import RegisterForm
+
+def register(request):
+    # ...
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        # ...
+    else:
+        form = RegisterForm()
+```
