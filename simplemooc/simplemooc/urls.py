@@ -1,8 +1,11 @@
-"""simplemooc URL Configuration
+"""simplemooc URL Configuration.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.11/topics/http/urls/
-Examples:
+
+
+Examples
+--------
 Function views
     1. Add an import:  from my_app import views
     2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
@@ -21,9 +24,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('simplemooc.core.urls', namespace='core')),
+    url(r'^conta/', include('simplemooc.accounts.urls', namespace='accounts')),
     url(r'^cursos/', include('simplemooc.courses.urls', namespace='courses')),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
