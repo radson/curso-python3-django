@@ -66,3 +66,65 @@ No  ```base.html``` adicionar no link apontando para url da para página de logi
     <li><a href="{% url 'accounts:login' %}">Entrar</a></li>
 </ul>
 ```
+
+## 34. Template de Login
+
+### Objetivos
+
+* Criar um template para fazer login
+
+### Etapas
+
+No app ```accounts``` adicionar a estrutura de templates onde deverá ser criado o template ```login.html```.
+
+```SHell
+mkdir -p simplemooc/accounts/templates/accounts
+> simplemooc/accounts/templates/accounts/login.html
+```
+
+O arquivo ```login.html``` irá utilizar o ```form``` do pacote ```auth``` do Django e deve ter o seguinte conteúdo:
+
+```Jinja
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-1">
+        <h2>Informe seus dados de cadastro</h2>
+        <form action="" class="pure-form pure-form-aligned" method="post">
+            {% csrf_token %}
+            <fieldset>
+                {{ form.non_field_errors }}
+
+                {% for field in form %}
+                    <div class="pure-control-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {{ field.erros }}
+                    </div>
+                {% endfor %}
+
+                <div class="pure-controls">
+                    <button type="submit" class="pure-button pure-button-primary">Entrar
+                    </button>
+                </div>
+            </fieldset>
+            <p>
+                Não é cadastrado? <a href="" title="">Cadastre-se</a><br>
+                Esqueceu a senha? <a href="" title="">Nova Senha</a><br>
+            </p>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+No final do arquivo ```settings.py``` do projeto, devem ser adicionadas rotas para referentes à ação de Login e Logout que são mapeadas no pacote auth do Django.
+
+```Python
+# Auth
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'core:home'
+LOGOUT_URL = 'accounts:logout'
+```

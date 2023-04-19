@@ -135,3 +135,9 @@ EMAIL_HOST_USER = 'simplemooc@gmail.com'
 EMAIL_HOST_PASSWORD = 'senha'
 
 CONTACT_EMAIL = 'contato@simplemooc.com'
+
+
+# Auth
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'core:home'
+LOGOUT_URL = 'accounts:logout'
