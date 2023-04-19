@@ -9,6 +9,7 @@
 ### Etapas
 
 * Usar o mecanismos padrão de usuários do Django e extender o model User para as necessidades do curso.
+* Para as próximas etapas, considerar o fonte do [auth.forms](https://github.com/django/django/blob/1.11.29/django/contrib/auth/forms.py) no github do projeto Django.
 
 ## 33. View de Login
 
@@ -272,4 +273,32 @@ def register(request):
         # ...
     else:
         form = RegisterForm()
+```
+
+## 37. E-mail Único no Cadastro
+
+### Objetivos
+
+* Ajustar para que o campo e-mail seja obrigatório e único no banco de dados.
+
+### Etapas
+
+Implementar um método ```clean_email``` inspirado no ```clean_username``` que o form do pacote auth possui. O Django implementa o método iniciando com ```clean_``` concatenado com o nome do campo para realizar validações ou outras alterações necessárias na informaçõa do campo.
+
+No ```forms.py``` do app Accounts, adicionar o método referido.
+
+```Python
+# omitido código sem alteração ...
+from django.contrib.auth.models import User
+
+class RegisterForm(UserCreationForm):
+# omitido código sem alteração ...
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Já existe usuário com este e-mail')
+
+        return email
 ```
