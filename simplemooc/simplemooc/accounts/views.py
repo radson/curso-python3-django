@@ -10,6 +10,11 @@ def dashboard(request):
     template_name = 'accounts/dashboard.html'
     return render(request, template_name)
 
+@login_required
+def edit(request):
+    template_name = 'accounts/edit.html'
+    return render(request, template_name)
+
 def register(request):
     template_name = 'accounts/register.html'
 

@@ -3,22 +3,29 @@
 {% block content %}
 <div class="pure-g-r content-ribbon">
     <div class="pure-u-1-3">
-        <h2>Meu painel</h2>
+        <ul class="breadcrumb">
+            {% block breadcrum %}
+                <li><a href="{% url 'accounts:dashboard' %}">Meu Painel</a></li>
+            {% endblock breadcrum %}
+            {% comment %} <li><a href="#">Editar Conta</a></li> {% endcomment %}
+        </ul>
         <div class="pure-menu pure-menu-open">
             <a href="" class="pure-menu-heading"></a>
             <ul>
                 <li class="pure-menu-heading">Meus Cursos</li>
                 <li><a href="#">Curso 1</a></li>
                 <li class="pure-menu-heading">Minha Conta</li>
-                <li><a href="#">Editar Conta</a></li>
+                <li><a href="{% url 'acounts:edit' %}">Editar Conta</a></li>
                 <li><a href="#">Editar Senha</a></li>
             </ul>
         </div>
     </div>
     <div class="pure-u-2-3">
         <div class="inner">
-            <p><strong>Usuário</strong>: {{ user }}</p>
-            <p><strong>E-mail</strong>: {{ user.email }}</p>
+            {% block dashboard-content %}
+                <p><strong>Usuário</strong>: {{ user }}</p>
+                <p><strong>E-mail</strong>: {{ user.email }}</p>
+            {% endblock dashboard-content %}
         </div>
     </div>
 </div>

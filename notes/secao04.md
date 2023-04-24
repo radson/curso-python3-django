@@ -436,3 +436,50 @@ def dashboard(request):
     template_name = 'accounts/dashboard.html'
     return render(request, template_name)
 ```
+
+## 41. View de Edição de Conta
+
+### Objetivos
+
+* Iniciar a implementação da view do Dashboar do usuário
+
+### Etapas
+
+Adicionar um breadcrumb no template ```dashboard.html``` substituindo a tag h2 com o título da página por um bloco content. Adicionar o mesmo bloco para os dados do usuário, desse modo será possível utilizar o recurso de herança da herança de template. Alterar a rota para o link *Editar Conta*.
+
+```Django
+<div class="pure-u-1-3">
+    <ul class="breadcrumb">
+        {% block breadcrum %}
+            <li><a href="{% url 'accounts:dashboard' %}">Meu Painel</a></li>
+        {% endblock breadcrum %}
+    </ul>
+    <!-- omitido código sem alteração -->
+    <li><a href="{% url 'acounts:edit' %}">Editar Conta</a></li>
+</div>
+<div class="pure-u-2-3">
+    <div class="inner">
+        {% block dashboard-content %}
+            <p><strong>Usuário</strong>: {{ user }}</p>
+            <p><strong>E-mail</strong>: {{ user.email }}</p>
+        {% endblock dashboard-content %}
+    </div>
+</div>
+```
+
+No views, adicionar respectiva view para editar a conta:
+
+```Python
+@login_required
+def edit(request):
+    template_name = 'accounts/edit.html'
+    return render(request, template_name)
+```
+
+No arquivo de rotas ```urls.py``` adicionar a nota para editar o perfil
+
+```Python
+urlpatterns = [
+    url(r'^editar/$', views.edit, name='edit'),
+]
+```
