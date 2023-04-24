@@ -365,3 +365,74 @@ Definição do escopo do perfil do usuário:
 * Poder alterar senha
 * Poder se inscrever em um curso (apenas o admin poderá criar novos cursos)
 * Navegar nos cursos inscritos
+
+
+## 40. Template do Painel do Usuário
+
+### Objetivos
+
+* Criar o template do painel do usuário
+
+### Etapas
+
+Adicionar nova rota padrão na app Accounts que será o index do usuário
+
+```Python
+urlpatterns = [
+    url(r'^$', views.dashboard, name='dashboard'),
+    # omitido código sem alteração ...
+]
+```
+
+Na app Accounts adicionar o template ```accounts\templates\accounts\dashboard.html```. Neste template a variável ```user``` é utilizada para acessar informações sobre o usuário logado.
+
+```Django
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-1-3">
+        <h2>Meu painel</h2>
+        <div class="pure-menu pure-menu-open">
+            <a href="" class="pure-menu-heading"></a>
+            <ul>
+                <li class="pure-menu-heading">Meus Cursos</li>
+                <li><a href="#">Curso 1</a></li>
+                <li class="pure-menu-heading">Minha Conta</li>
+                <li><a href="#">Editar Conta</a></li>
+                <li><a href="#">Editar Senha</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="pure-u-2-3">
+        <div class="inner">
+            <p><strong>Usuário</strong>: {{ user }}</p>
+            <p><strong>E-mail</strong>: {{ user.email }}</p>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+No ```base.html``` adicionar novo link para que o usuário autenticado consiga entrar no Dashboard
+
+```Django
+{% if user.is_authenticated %}
+    <li><a href="{% url 'accounts:dashboard' %}">Painel</a></li>
+    <li><a href="{% url 'accounts:logout' %}">Sair</a></li>
+{% else %}
+    <li><a href="{% url 'accounts:login' %}">Entrar</a></li>
+{% endif %}
+```
+
+No arquivo de views, adicionar a view respectiva ao Dashboard. A view deverá utilizar o recurso chamado decorator do Django, o decorator ```login_required``` irá requisitar que o usuário esteja logado, conforme [documentação](https://docs.djangoproject.com/pt-br/1.11/_modules/django/contrib/auth/decorators/). Caso contrário, irá direcionar para a página de login e a URL após o login será a que aponta para a view que requisitou.
+
+```Python
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def dashboard(request):
+    template_name = 'accounts/dashboard.html'
+    return render(request, template_name)
+```
