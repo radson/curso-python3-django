@@ -351,3 +351,17 @@ No arquivo ```base.html``` ajustar o menu de links para verificar se o user est�
     <li><a href="{% url 'accounts:login' %}">Entrar</a></li>
 {% endif %}
 ```
+
+## 39. Painel do Usuário
+
+### Objetivos
+
+* Criar uma área para gerenciar os cursos cadastrados, alterar senha do usuário, uma tela do seu perfil.
+
+### Etapas
+
+Definição do escopo do perfil do usuário:
+
+* Poder alterar senha
+* Poder se inscrever em um curso (apenas o admin poderá criar novos cursos)
+* Navegar nos cursos inscritos
