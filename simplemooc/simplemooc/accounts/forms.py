@@ -23,3 +23,17 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError('Já existe usuário com este e-mail')
 
         return email
+
+class EditAccountForm(forms.ModelForm):
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        queryset = User.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise forms.ValidationError('Já existe usuário com este e-mail')
+
+        return email
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']

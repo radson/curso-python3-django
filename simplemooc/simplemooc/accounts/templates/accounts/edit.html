@@ -1,0 +1,31 @@
+{% extends 'accounts/dashboard.html' %}
+
+
+{% block breadcrumb %}
+    {% comment "" %}Mantem o conteúdo do bloco que foi herdado e adicina o conteúdo a seguir.{% endcomment %}
+    {{ block.super }}
+    <li>/</li>
+    <li><a href="{% url 'accounts:edit' %}">Editar Conta</a></li>
+{% endblock breadcrumb %}
+
+{% block dashboard_content %}
+<form class="pure-form pure-form-stacked">
+    {% csrf_token %}
+    <fieldset>
+        {{ form.non_field_errors }}
+        
+        {% for field in form %}
+            <div class="pure-control-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.erros }}
+            </div>
+        {% endfor %}
+         
+        <div class="pure-controls">
+            <button type="submit" class="pure-button pure-button-primary">Enviar
+            </button>
+        </div>
+    </fieldset>
+</form>
+{% endblock dashboard_content %}

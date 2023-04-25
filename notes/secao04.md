@@ -455,7 +455,7 @@ Adicionar um breadcrumb no template ```dashboard.html``` substituindo a tag h2 c
         {% endblock breadcrum %}
     </ul>
     <!-- omitido código sem alteração -->
-    <li><a href="{% url 'acounts:edit' %}">Editar Conta</a></li>
+    <li><a href="{% url 'accounts:edit' %}">Editar Conta</a></li>
 </div>
 <div class="pure-u-2-3">
     <div class="inner">
@@ -482,4 +482,81 @@ No arquivo de rotas ```urls.py``` adicionar a nota para editar o perfil
 urlpatterns = [
     url(r'^editar/$', views.edit, name='edit'),
 ]
+```
+
+## 42. Formulário para Edição de Conta
+
+### Objetivos
+
+* Criar um form para editar os dados da conta do usuário
+
+### Etapas
+
+Criar um novo template  ```accounts/edit.html``` que vai herdar os blocos ```breadcrumb``` e ```dashboard_content``` do template ```dashboard.html```
+
+```Django
+{% extends 'accounts/dashboard.html' %}
+
+
+{% block breadcrumb %}
+    {% comment "" %}Mantem o conteúdo do bloco que foi herdado e adicina o conteúdo a seguir.{% endcomment %}
+    {{ block.super }}
+    <li>/</li>
+    <li><a href="{% url 'accounts:edit' %}">Editar Conta</a></li>
+{% endblock breadcrumb %}
+
+{% block dashboard_content %}
+<form class="pure-form pure-form-stacked">
+    {% csrf_token %}
+    <fieldset>
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            <div class="pure-control-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.erros }}
+            </div>
+        {% endfor %}
+
+        <div class="pure-controls">
+            <button type="submit" class="pure-button pure-button-primary">Enviar
+            </button>
+        </div>
+    </fieldset>
+</form>
+{% endblock dashboard_content %}
+```
+
+Em ```forms.py``` ciar a classe ```EditAccountForm``` que irá criar os campos do formulário a partir dos campos do model ```User```.
+
+```Python
+class EditAccountForm(forms.ModelForm):
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        queryset = User.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise forms.ValidationError('Já existe usuário com este e-mail')
+
+        return email
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+```
+
+No ```views.py``` editar a view ```edit``` que implementa a passagem do form via parâmetro para o template.
+
+```Python
+# omitido código sem alteração
+from .forms import RegisterForm, EditAccountForm
+
+@login_required
+def edit(request):
+    template_name = 'accounts/edit.html'
+    form = EditAccountForm()
+    context = {}
+    context['form'] = form
+
+    return render(request, template_name, context)
 ```
