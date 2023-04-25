@@ -678,3 +678,13 @@ No template ```dashboard.html``` alterar a url do link para alterar senha
     <li><a href="{% url 'accounts:edit_password' %}">Editar Senha</a></li>
 </ul>
 ```
+
+## 45. Introdução ao Custom User
+
+### Objetivos
+
+* Explicação do usuário extendendo os campos do model User do Django.
+
+### Etapas
+
+Mais detalhes na documentação [Estendendo o modelo Usuário existente](https://docs.djangoproject.com/pt-br/1.11/topics/auth/customizing/#extending-the-existing-user-model)
