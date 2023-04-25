@@ -560,3 +560,46 @@ def edit(request):
 
     return render(request, template_name, context)
 ```
+
+## 43. Confirmação de Edição de Conta
+
+### Objetivos
+
+* Implementar uma confirmação de edição de conta
+
+### Etapas
+
+No arquivo ```views.py``` alterar a view ```edit``` para controlar quando o request for do tipo ```POST```.
+
+```Python
+# omitido código sem alteração
+@login_required
+def edit(request):
+    template_name = 'accounts/edit.html'
+    context = {}
+
+    if request.method == 'POST':
+        form = EditAccountForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            form = EditAccountForm(instance=request.user)
+            context['success'] = True
+    else:
+        form = EditAccountForm(instance=request.user)
+
+    context['form'] = form
+
+    return render(request, template_name, context)
+```
+
+No template ```edit.html``` incluir uma verificação de a variável ```success``` está no contexto, indicando que os dados foram persistidos com sucesso.
+
+```Django
+<form class="pure-form pure-form-stacked" method="post">
+    {% csrf_token %}
+    {% if success %}
+        <p>Os dados foram alterados com sucesso.</p>
+    {% endif %}
+    <!-- omitido código sem alteração -->
+</form>
+```
