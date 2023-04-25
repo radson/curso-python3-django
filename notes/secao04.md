@@ -603,3 +603,78 @@ No template ```edit.html``` incluir uma verificação de a variável ```success`
     <!-- omitido código sem alteração -->
 </form>
 ```
+
+## 44. Edição de Senha
+
+### Objetivos
+
+* Permitir ao usuário alterar sua senha.
+
+### Etapas
+
+Adicionar uma view ```edit_password``` que irá fazer uso do form que o Django disponibiliza ```PasswordChangeForm``` para alterar senha do usuário. O form recebe os dados do POST e o usuário que está logado.
+
+```Python
+from django.contrib.auth.forms import PasswordChangeForm
+# omitido código sem alteração
+
+@login_required
+def edit_password(request):
+    template_name = 'accounts/edit_password.html'
+    context = {}
+
+    if request.method == 'POST':
+        form = PasswordChangeForm(data=request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            context['success'] = True
+    else:
+        form = PasswordChangeForm(user=request.user)
+
+    context['form'] = form
+
+    return render(request, template_name, context)
+```
+
+Deve ser criado um template novo para tratar da senha, com nome ```edit_password.html``` pois é como funciona o PasswordChangeForm. Ele será com a mesma estrutura do template ```edit.html``` com algumas alterações nos labels.
+
+```Django
+{% block breadcrumb %}
+    <!-- omitido código sem alteração -->
+    <li><a href="{% url 'accounts:edit_password' %}">Editar Senha</a></li>
+{% endblock breadcrumb %}
+
+{% block dashboard_content %}
+    <form class="pure-form pure-form-stacked" method="post">
+        {% csrf_token %}
+        {% if success %}
+            <p>Senha alterada com sucesso.</p>
+        {% endif %}
+        <fieldset>
+            <!-- omitido código sem alteração -->
+            <div class="pure-controls">
+                <button type="submit" class="pure-button pure-button-primary">Alterar Senha
+                </button>
+            </div>
+        </fieldset>
+    </form>
+{% endblock dashboard_content %}
+```
+
+No arquivo ```urls.py``` adicionar a rota respectiva para alterar senha
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^editar-senha/$', views.edit_password, name='edit_password'),
+]
+```
+
+No template ```dashboard.html``` alterar a url do link para alterar senha
+
+```Django
+<ul>
+    <!-- omitido código sem alteração -->
+    <li><a href="{% url 'accounts:edit_password' %}">Editar Senha</a></li>
+</ul>
+```
