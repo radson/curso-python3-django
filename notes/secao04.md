@@ -688,3 +688,55 @@ No template ```dashboard.html``` alterar a url do link para alterar senha
 ### Etapas
 
 Mais detalhes na documentação [Estendendo o modelo Usuário existente](https://docs.djangoproject.com/pt-br/1.11/topics/auth/customizing/#extending-the-existing-user-model)
+
+## 46. Custom User Model
+
+### Objetivos
+
+* Criar um model customizado estendendo o model User do Django.
+
+### Etapas
+
+Na app Accounts, no arquivo ```models.py``` adicionar o model ```User``` com os campos personalizados que será utilizado no lugar do ```User``` padrão do Django para esta aplicação. Serão realizados os seguintes imports:
+
+* AbstractBaseUser: Já tem a lógica para alterar senha. Traz os campos senha e lastlogin.
+* PermissionMixin: Traz mecanismos de permissões e buscas
+* UserManager: Implementa funcoes de gerenciamento de usuário
+
+```Python
+from django.contrib.auth.models import (AbstractBaseUser, PermissionsMixin,
+UserManager)
+
+class User(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField('Nome de Usuário', max_length=30, unique=True)
+    email = models.EmailField('E-mail', unique=True)
+    name = models.CharField('Nome', max_length=100, blank=True)
+    is_active = models.BooleanField('Está ativo?', blank=True, default=True)
+    is_staff = models.BooleanField('É da equipe?', blank=True, default=False)
+    date_joined = models.DateTimeField('Data de entrada', auto_now_add=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
+
+    def __str__(self):
+        return self.name or self.username
+
+    def get_short_name(self):
+        return self.username
+
+    def get_full_name(self):
+        return str(self)
+
+    class Meta:
+        verbose_name = 'Usuário'
+        verbose_name_plural = 'Usuários'
+```
+
+No ```settings.py```, adicionar ao final do arquivo a variável ```AUTH_USER_MODEL``` que indica ao Django qual será o model padrão para gerenciamento de usuário.
+
+```Python
+# omitido código sem alteração
+AUTH_USER_MODEL= 'accounts.User'
+```
