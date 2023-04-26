@@ -740,3 +740,80 @@ No ```settings.py```, adicionar ao final do arquivo a variável ```AUTH_USER_MOD
 # omitido código sem alteração
 AUTH_USER_MODEL= 'accounts.User'
 ```
+
+## 47. Ajustes na aplicação para o Custom User
+
+### Objetivos
+
+* Realizar os ajustes na aplicação para ficar compatível com o novo modelo de models.
+
+### Etapas
+
+No ```models.py``` do app Accounts, modificar o model ```User``` para fazer uso do mesmo validator que o Django utiliza para o username.
+
+```Python
+import re
+from django.core import validators
+# omitido código sem alteração
+
+class User(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField(
+        'Nome de Usuário', max_length=30, unique=True,
+        validators=[validators.RegexValidator(re.compile('^[\w.@+-]+$'), 
+        'O nome de usuário só pode conter letras, números ou os caracteres @/./+/-/_',
+        'invalid')]
+    )
+    # omitido código sem alteração
+```
+
+Em ```forms.py``` será necessário revisar o código para identificar o que ainda continua compatível e o precisa ser refeito de acordo com o novo model de usuários. Na [documentação](https://docs.djangoproject.com/pt-br/1.11/topics/auth/customizing/#custom-users-and-the-built-in-auth-forms) do Django explica quais forms precisam ser reescritos quando um model customizado é utilizado. O ```UserCreationForm``` não é compatível com o model de usuário customizado e deve ser removido, bem como a função ```clean_email``` pois agora o campo do model está configurado como único. Adicionar também a class  ```Meta``` informando os campos utilizados.
+
+```Python
+ # omitido código sem alteração
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class RegisterForm(forms.ModelForm):
+
+    password1 = forms.CharField(label='Senha', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='COnfirmação de Senha', widget=forms.PasswordInput)
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError('A confirmação não está correta')
+        
+        return password2
+
+    def save(self, commit=True):
+        user = super(RegisterForm, self).save(commit=False)
+        user.set_password(self.cleaned_data['password1'])
+        # omitido código sem alteração
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+class EditAccountForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'name']
+```
+
+Apagar o arquivo sqlite e gerar novamente rodando o migrate. Será possível notar que não gerada a tabela ```auth_user``` e no seu lugar será a ```accounts_user```
+
+```Shell
+rm db.sqlite3
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+
+
+Usar o recurso validators do model para permitir que o usuário cadastre apenas username válidos.
+
