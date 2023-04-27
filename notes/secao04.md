@@ -851,3 +851,41 @@ Em seguida realizar a migração no banco de dados.
 python manage.py makemigrations
 python manage.py migrate
 ```
+
+## 49. Gerando a chave única para o PasswordRest Model
+
+### Objetivos
+
+* Implementar mecanismo onde o usuário solicita mudar a senha em um formulário onde informa o e-mail, recebe um link com um token (key) 
+
+### Etapas
+
+Na app ```core``` criar um arquivo ```utils.py ```com funções para auxiliar a geração da senha.
+
+```Python
+import hashlib
+import string
+import random
+
+def random_key(size=5):
+    chars = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(chars) for x in range(size))
+
+def generate_hash_key(salt, random_str_size=5):
+    random_str = random_key(random_str_size)
+    text = random_str + salt
+    return hashlib.sha224(text.enconde('utf-8')).hexdigest()
+```
+
+No model usar o recurso de ```related_name``` para que o model ```User``` possa acessar de forma reversa o model que tem relação via ForeignKey e saber os registros (quantos resets de senha) o user tem. Mais detalhes na [documentação](https://docs.djangoproject.com/en/1.8/ref/models/options/#default-related-name)
+
+```Python
+class PasswordReset(models.Model):
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name='Usuário',
+        related_name='resets'
+    )
+
+    # omitido código sem alteração
+```
