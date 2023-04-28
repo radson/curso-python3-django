@@ -877,7 +877,7 @@ def generate_hash_key(salt, random_str_size=5):
     return hashlib.sha224(text.enconde('utf-8')).hexdigest()
 ```
 
-No model usar o recurso de ```related_name``` para que o model ```User``` possa acessar de forma reversa o model que tem relação via ForeignKey e saber os registros (quantos resets de senha) o user tem. Mais detalhes na [documentação](https://docs.djangoproject.com/en/1.8/ref/models/options/#default-related-name)
+No model usar o recurso de ```related_name``` para que o model ```User``` possa acessar de forma reversa o model que tem relação via ForeignKey e saber os registros (quantos resets de senha) o user tem. Mais detalhes na [documentação](https://docs.djangoproject.com/en/1.11/ref/models/options/#default-related-name)
 
 ```Python
 class PasswordReset(models.Model):
