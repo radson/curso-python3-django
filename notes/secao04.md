@@ -999,6 +999,128 @@ No arquivo ```login.html``` atualizar o link para o novo template.
 Esqueceu a senha? <a href={% url 'accounts:password_reset' %} title="">Nova Senha</a><br>
 ```
 
+## 51. Form para criar nova senha
 
+### Objetivos
 
+* Reorganização da lógica de criar nova senha
 
+### Etapas
+
+Mover lógica da view ```password_reset``` para dentro do de ```PasswordResetForm``` em ```forms.py``` e adicionar nova view ```password_reset_confirm``` que usará um form do Django para alterar senha.
+
+```Python
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.forms import SetPasswordForm
+
+# omitido código sem alteração
+
+def password_reset(request):
+    template_name = 'accounts/password_reset.html'
+    context = {}
+
+    form = PasswordResetForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        context['success'] = True
+    
+    context['form'] = form
+
+    return render(request, template_name, context)
+
+def password_reset_confirm(request, key):
+    template_name = 'accounts/password_reset_confirm.html'
+    context = {}
+    reset = get_object_or_404(PasswordReset, key=key)
+    form = SetPasswordForm(user=reset.user, data=request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        context['success'] = True
+    
+    context['form'] = form
+
+    return render(request, template_name, context)
+```
+
+A lógica que saiu da view ```password_reset``` passa a ser o método ```save``` que irá enviar email para o user resetar a senha.
+
+```Python
+from simplemooc.core.utils import generate_hash_key
+from simplemooc.core.mail import send_mail_template
+from .models import PasswordReset
+
+class PasswordResetForm(forms.Form):
+    
+    # omitido código sem alteração
+
+    def save(self):
+        user = User.objects.get(email=self.cleaned_data['email'])
+        key = generate_hash_key(user.username)
+        reset = PasswordReset(key=key, user=user)
+        reset.save()
+        template_name = 'accounts/password_reset_mail.html'
+        subject = 'Criar nova senha no Simple Mooc'
+        send_mail_template(subject, template_name, context = {'reset': reset}, recipient_list=[user.email])
+```
+
+Adicionar rota para nova view, recebendo como parâmetro a key para resetar a senha
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^confirmar-nova-senha/(?P<key>\w+)$', views.password_reset_confirm, name='password_reset_confirm'),
+]
+```
+
+Criar os novos templates:
+* ```password_reset_mail.html```: Que contém o conteúdo do e-mail com o link para resetar a senha.
+* ```password_reset_confirm.html```: Template de confirmação da senha criada ou exibe o form para criar a senha.
+
+No template ```password_reset_mail.html``` a tag ```url``` do Django receberá um segundo parametro ```reset.key``` passado via contexto com o campo ```key``` do respectivo model. A tag ```url``` retorna a url relativa, para esta lição, será adicionado o domínio, mas em aulas posteriores será corrigido usando os recursos do Django.
+
+```Django
+<p>
+    Para criar uma nova senha, acesse o link: <a href="http://127.0.0.1:8000{% url 'accounts:password_reset_confirm' reset.key %}">Criar nova senha</a>
+</p>
+```
+
+O template ```password_reset_confirm.html``` tem a estrutura conhecida de forms anteriores.
+
+```Django
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-1">
+        {% if success %}
+            <p>Senha criada com sucesso!</p>
+        {% else %}
+            <h2>Informe sua nova senha</h2>
+            <form action="" class="pure-form pure-form-stacked" method="post">
+                {% csrf_token %}
+                <fieldset>
+                    {{ form.non_field_errors }}
+                    
+                    {% for field in form %}
+                        <div class="pure-control-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="pure-controls">
+                        <button type="submit" class="pure-button pure-button-primary">
+                            Enviar
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}
+```
