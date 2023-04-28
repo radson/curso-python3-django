@@ -13,7 +13,7 @@
                     <div class="pure-control-group">
                         {{ field.label_tag }}
                         {{ field }}
-                        {{ field.erros }}
+                        {{ field.errors }}
                     </div>
                 {% endfor %}
                  
@@ -24,7 +24,7 @@
             </fieldset>
             <p>
                 Não é cadastrado? <a href="{% url 'accounts:register' %}" title="">Cadastre-se</a><br>
-                Esqueceu a senha? <a href="" title="">Nova Senha</a><br>
+                Esqueceu a senha? <a href={% url 'accounts:password_reset' %} title="">Nova Senha</a><br>
             </p>
         </form>
     </div>

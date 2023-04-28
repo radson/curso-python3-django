@@ -39,3 +39,14 @@ class EditAccountForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'name']
+
+class PasswordResetForm(forms.Form):
+    email = forms.EmailField(label='E-mail')
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+
+        if User.objects.filter(email=email).exists():
+            return email
+
+        raise forms.ValidationError('Nenhum usuário encontrado com este e-mail')

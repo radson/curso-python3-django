@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^cadastre-se/$', views.register, name='register'),
     url(r'^editar/$', views.edit, name='edit'),
     url(r'^editar-senha/$', views.edit_password, name='edit_password'),
+    url(r'^nova-senha/$', views.password_reset, name='password_reset'),
 ]

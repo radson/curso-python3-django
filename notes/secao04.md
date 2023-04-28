@@ -101,7 +101,7 @@ O arquivo ```login.html``` irá utilizar o ```form``` do pacote ```auth``` do Dj
                     <div class="pure-control-group">
                         {{ field.label_tag }}
                         {{ field }}
-                        {{ field.erros }}
+                        {{ field.errors }}
                     </div>
                 {% endfor %}
 
@@ -162,7 +162,7 @@ O arquivo ```register.html``` irá utilizar o ```form``` do pacote ```auth``` do
                     <div class="pure-control-group">
                         {{ field.label_tag }}
                         {{ field }}
-                        {{ field.erros }}
+                        {{ field.errors }}
                     </div>
                 {% endfor %}
 
@@ -514,7 +514,7 @@ Criar um novo template  ```accounts/edit.html``` que vai herdar os blocos ```bre
             <div class="pure-control-group">
                 {{ field.label_tag }}
                 {{ field }}
-                {{ field.erros }}
+                {{ field.errors }}
             </div>
         {% endfor %}
 
@@ -889,3 +889,116 @@ class PasswordReset(models.Model):
 
     # omitido código sem alteração
 ```
+
+## 50. Form para o PasswordRest
+
+### Objetivos
+
+* Adicionar o form do fluxo de solicitação de nova senha
+
+### Etapas
+
+Adicionar um nova classe no ```forms.py``` que irá exibir e validar o campo e-mail que será usado para recuperar a senha.
+
+```Python
+class PasswordResetForm(forms.Form):
+    email = forms.EmailField(label='E-mail')
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+
+        if User.objects.filter(email=email).exists():
+            return email
+
+        raise forms.ValidationError('Nenhum usuário encontrado com este e-mail')
+```
+
+Criar nova view ```password_reset``` em uma construção diferente das views anteriores com forms, onde o ```PasswordResetForm``` recebe como parametro o ```request.POST``` ou ```None```. Esta forma substitui as verificacões para saber se o ```request``` é GET ou POST. O Django aceita o None quando não houver dados no POST desse modo evitando a validação do form.
+
+```Python
+from django.contrib.auth import authenticate, login, get_user_model
+
+from simplemooc.core.utils import generate_hash_key
+from .forms import RegisterForm, EditAccountForm, PasswordResetForm
+from .models import PasswordReset
+
+User = get_user_model()
+
+# omitido código sem alteração
+
+def password_reset(request):
+    template_name = 'accounts/password_reset.html'
+    context = {}
+
+    form = PasswordResetForm(request.POST or None)
+
+    if form.is_valid():
+        user = User.objects.get(email=form.cleaned_data['email'])
+        key = generate_hash_key(user.username)
+        reset = PasswordReset(key=key, user=user)
+        reset.save()
+        context['success'] = True
+    
+    context['form'] = form
+
+    return render(request, template_name, context)
+```
+
+Criar um novo template em ```templates/accounts/password_reset.html```
+
+```Django
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-1">
+        {% if success %}
+            <p>Você receberá um e-mail informando como gerar nova senha.</p>
+        {% else %}
+            <h2>Informe seu e-mail</h2>
+            <form action="" class="pure-form pure-form-stacked" method="post">
+                {% csrf_token %}
+                <fieldset>
+                    {{ form.non_field_errors }}
+                    
+                    {% for field in form %}
+                        <div class="pure-control-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="pure-controls">
+                        <button type="submit" class="pure-button pure-button-primary">
+                            Enviar e-mail
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+Adicionar a nova rota em ```urls.py```.
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^nova-senha/$', views.password_reset, name='password_reset'),
+]
+```
+
+No arquivo ```login.html``` atualizar o link para o novo template.
+
+```Html
+<!-- omitido código sem alteração -->
+Esqueceu a senha? <a href={% url 'accounts:password_reset' %} title="">Nova Senha</a><br>
+```
+
+
+
+
