@@ -404,9 +404,9 @@ No template, adicionar o form usando a linguagem de template. Para este exemplo 
                     <div class="pure-control-group">
                         {{ field.label_tag }}
                         {{ field }}
-                        {% if field.erros  %}
+                        {% if field.errors  %}
                             <ul class="errorlist">
-                                {% for error  in field.erros %}
+                                {% for error  in field.errors %}
                                     <li>{{error}}</li>
                                 {% endfor %}
                             </ul>
