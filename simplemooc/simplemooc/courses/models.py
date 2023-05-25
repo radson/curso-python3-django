@@ -1,5 +1,5 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 
 class CourseManager(models.Manager):
@@ -54,7 +54,7 @@ class Enrollment(models.Model):
     course = models.ForeignKey(Course, verbose_name='enrollments')
 
     status = models.IntegerField(
-        'Situação', choices=STATUS_CHOICE, default=0, blank=True)
+        'Situação', choices=STATUS_CHOICE, default=1, blank=True)
     created_at = models.DateTimeField(
         'Criado em', auto_now=False, auto_now_add=True)
     update_at = models.DateTimeField(

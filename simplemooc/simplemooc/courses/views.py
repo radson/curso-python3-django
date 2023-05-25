@@ -1,7 +1,8 @@
-from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Course
 from .forms import ContactCourse
+from .models import Course, Enrollment
 
 
 def index(request):
@@ -41,3 +42,12 @@ def details(request, slug):
     template_name = 'courses/details.html'
 
     return render(request, template_name, context)
+
+
+@login_required
+def enrollment(request, slug):
+    course = get_object_or_404(Course, slug=slug)
+    enrollment, created = Enrollment.objects.get_or_create(
+        user=request.user, course=course)
+
+    return redirect('accounts:dashboard')
