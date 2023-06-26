@@ -28,6 +28,15 @@
         </div>
     </div>
 <div class="content">
+    <div class="pure-g-r content-ribbon">
+        <aside class="pure-u-1">
+            {% if messages %}
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        </aside>
+    </div>
     {% block content %}{% endblock content %}
 </div>
 <div class="footer">

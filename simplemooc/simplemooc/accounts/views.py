@@ -1,17 +1,20 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import RegisterForm, EditAccountForm, PasswordResetForm
+from .forms import EditAccountForm, PasswordResetForm, RegisterForm
 from .models import PasswordReset
 
 User = get_user_model()
+
 
 @login_required
 def dashboard(request):
     template_name = 'accounts/dashboard.html'
     return render(request, template_name)
+
 
 @login_required
 def edit(request):
@@ -22,14 +25,16 @@ def edit(request):
         form = EditAccountForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            form = EditAccountForm(instance=request.user)
-            context['success'] = True
+            messages.success(
+                request, 'Os dados da sua conta foram alterados com sucesso.')
+            return redirect('accounts:dashboard')
     else:
         form = EditAccountForm(instance=request.user)
 
     context['form'] = form
 
     return render(request, template_name, context)
+
 
 def register(request):
     template_name = 'accounts/register.html'
@@ -53,6 +58,7 @@ def register(request):
 
     return render(request, template_name, context)
 
+
 @login_required
 def edit_password(request):
     template_name = 'accounts/edit_password.html'
@@ -70,6 +76,7 @@ def edit_password(request):
 
     return render(request, template_name, context)
 
+
 def password_reset(request):
     template_name = 'accounts/password_reset.html'
     context = {}
@@ -79,10 +86,11 @@ def password_reset(request):
     if form.is_valid():
         form.save()
         context['success'] = True
-    
+
     context['form'] = form
 
     return render(request, template_name, context)
+
 
 def password_reset_confirm(request, key):
     template_name = 'accounts/password_reset_confirm.html'
@@ -93,7 +101,7 @@ def password_reset_confirm(request, key):
     if form.is_valid():
         form.save()
         context['success'] = True
-    
+
     context['form'] = form
 
     return render(request, template_name, context)

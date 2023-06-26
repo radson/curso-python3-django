@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -49,5 +50,10 @@ def enrollment(request, slug):
     course = get_object_or_404(Course, slug=slug)
     enrollment, created = Enrollment.objects.get_or_create(
         user=request.user, course=course)
+
+    if created:
+        messages.success(request, 'Você foi inscrito no curso com sucesso')
+    else:
+        messages.info(request, 'Você já está inscrito no curso')
 
     return redirect('accounts:dashboard')
