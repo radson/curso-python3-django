@@ -3,6 +3,8 @@
 {% load courses_tags %}
 
 {% block content %}
+{% load_my_courses user as enrollments %}
+
 <div class="pure-g-r content-ribbon">
     <div class="pure-u-1">
         <ul class="breadcrumb">
@@ -17,18 +19,19 @@
             <ul>
                 {% comment %} {% my_courses user %} {% endcomment %}
                 <li class="pure-menu-heading">Bem-vindo, {{ user }}</li>
-                {% load_my_courses user as enrollments %}
-                <li class="pure-menu-heading">Cursos</li>
-                {% for enrollment in enrollments %}
-                    <li><a href="#"><i class="fa-solid fa-book-open-reader"></i> {{ enrollment.course }} </a></li>
-                {% empty %}
-                    <li>Você não está inscrito em um curso.</li>
-                {% endfor %}
-                <li class="pure-menu-heading">Conta</li>
-                <li><a href="{% url 'accounts:edit' %}">
-                    <i class="fa-solid fa-user-pen"></i> Editar Conta</a></li>
-                <li><a href="{% url 'accounts:edit_password' %}">
-                    <i class="fa-solid fa-lock"></i> Editar Senha</a></li>
+                {% block menu_options %}
+                    <li class="pure-menu-heading">Cursos</li>
+                    {% for enrollment in enrollments %}
+                        <li><a href={% url 'courses:announcements' enrollment.course.slug %}><i class="fa fa-book"></i> {{ enrollment.course }} </a></li>
+                    {% empty %}
+                        <li>Você não está inscrito em um curso.</li>
+                    {% endfor %}
+                    <li class="pure-menu-heading">Conta</li>
+                    <li><a href="{% url 'accounts:edit' %}">
+                        <i class="fa-solid fa-cog"></i> Editar Conta</a></li>
+                    <li><a href="{% url 'accounts:edit_password' %}">
+                        <i class="fa-solid fa-lock"></i> Editar Senha</a></li>
+                {% endblock menu_options %}
             </ul>
         </div>
     </div>
@@ -41,7 +44,7 @@
                     <h3>{{ enrollment.course }} ({{ enrollment.course.start_date|date:'d/m/Y'|default:'Não informado' }})</h3>
                     <p>{{ enrollment.course.description|linebreaks }}</p>
                     <div class="pure-controls">
-                        <a href="#" class="pure-button pure-button-primary">Acessar</a>
+                        <a href={% url 'courses:announcements' enrollment.course.slug %} class="pure-button pure-button-primary">Acessar</a>
                         <a href="#" class="pure-button pure-error">Cancelar</a>
                     </div>
                 </div>

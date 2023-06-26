@@ -377,3 +377,128 @@ No template `dashboard.html`, alterar adicionando referência aos ícones do fon
     </div>
 </div>
 ```
+
+## 57. Página Inicial interna do Curso
+
+### Objetivos
+
+* Incluir no menu lateral links com mais detalhes dos cursos.
+
+### Etapas
+
+No model `Enrollment`, incluir uma propriedade para verificar se a inscrição está aprovada.
+
+```Python
+class Enrollment(models.Model):
+    # omitido código sem alteração
+
+    def is_approved(self):
+        return self.status == 1
+
+```
+
+Na views da app `courses`, adicionar nova view `announcements`, que recebe a `slug` do curso e verifica se o usuário logado está com inscrição válida, retornando para a página de anuncios do curso:
+
+```Python
+# omitido código sem alteração
+@login_required
+def announcements(request, slug):
+    course = get_object_or_404(Course, slug=slug)
+    if not request.user.is_staff:
+        enrollment = get_object_or_404(
+            Enrollment, user=request.user, course=course)
+
+        if not enrollment.is_approved():
+            messages.error(request, "A sua inscrição está pendente.")
+            return redirect('accounts:dashboard')
+
+    template = 'courses/announcements.html'
+    context = {
+        'course': course
+    }
+    return render(request, template, context)
+```
+
+No arquivo de rotas `courses/urls.py` adicinoar a nova url:
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^(?P<slug>[\w_-]+)/anuncios/$',
+        views.announcements, name='announcements'),
+]
+```
+
+Criar o novo template em `courses/templates/courses/announcements.html`. Este template vai extender de `dashboard.html` e possuir um bloco para ser incluído no bloco do menu do `dashboard.html`, usando a tag `block.super`. Haverá também o bloco `dashboard_content` para o conteúdo do dashboard.
+
+```Django
+{% extends 'accounts/dashboard.html' %}
+
+{% block menu_options %}
+<li class="pure-menu-heading">
+    {{ course }}
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-video-camera"></i> Aulas e Materiais
+    </a>
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-info-circle"></i> Informações
+    </a>
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-envelope"></i> Anúncios
+    </a>
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-comments"></i> Fórum de Dúvidas
+    </a>
+</li>
+{{ block.super }}
+{% endblock menu_options %}
+
+{% block dashboard_content %}
+    <div class="well">
+    </div>
+{% endblock dashboard_content %}
+```
+
+No template `dashboard.html` será necessário algumas alterações para acomodar essa nova disposição:
+
+* Após a declaração do bloco content, colocar a declaração da custom tag `load_my_courses` que carrega as inscrições.
+* Dentro do menu incluir a declaração do bloco `menu_options` para permitir que o template `announcements.html` possa incluir seu conteúdo.
+* Atualizar o link para os anuncios  do curso com a nova url criada.
+
+```Django
+{% block content %}
+{% load_my_courses user as enrollments %}
+
+<!-- omitido código sem alteração -->
+
+<div class="pure-menu pure-menu-open">
+    <ul>
+        <li class="pure-menu-heading">Bem-vindo, {{ user }}</li>
+        {% block menu_options %}
+            <li class="pure-menu-heading">Cursos</li>
+            {% for enrollment in enrollments %}
+                <li><a href={% url 'courses:announcements' enrollment.course.slug %}><i class="fa fa-book"></i> {{ enrollment.course }} </a></li>
+            {% empty %}
+                <li>Você não está inscrito em um curso.</li>
+            {% endfor %}
+            <li class="pure-menu-heading">Conta</li>
+            <li><a href="{% url 'accounts:edit' %}">
+                <i class="fa-solid fa-cog"></i> Editar Conta</a></li>
+            <li><a href="{% url 'accounts:edit_password' %}">
+                <i class="fa-solid fa-lock"></i> Editar Senha</a></li>
+        {% endblock menu_options %}
+    </ul>
+</div>
+
+<!-- omitido código sem alteração -->
+
+<a href={% url 'courses:announcements' enrollment.course.slug %} class="pure-button pure-button-primary">Acessar</a>
+```
