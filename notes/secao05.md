@@ -315,3 +315,65 @@ No template `dashboard.html` o código voltaria a ser como no início, com a dif
 ```
 
 Ambas abordagens atendem ao propósito desta aula, ficando a critério de cada cenário qual escolher. 
+
+## 56. Ajustando Design do Dashboard
+
+### Objetivos
+
+* Realizando melhorias de design no Dashboard.
+
+### Etapas
+
+Para melhorar o visual, serão utilizados os recursos da biblioteca de ícones [Font Awesome](https://fontawesome.com/). Para fins de desenvolvimento será realizada a instalação local, baixando o pacote de ícones para Web e usando a [instalação alternativa](https://fontawesome.com/docs/web/setup/host-yourself/webfonts#alternate-install-using-all-css).
+
+Após baixar o pacote, extrair o diretório `webfonts` para `core/static/css/` e o arquivo `all.css` para `core/static/css/fontawesome/all.css`.
+
+No template `base.html` fazer referência ao arquivo de estilo:
+
+```Html
+<link rel="stylesheet" href="{% static 'css/fontawesome/all.css' %}" />
+```
+No template `dashboard.html`, alterar adicionando referência aos ícones do font awesome na parte do menu. Na parte do conteúdo do Dashboard, incluir a listagem dos cursos e detalhes do curso usando a variável de contexto `enrollments`.
+
+```Django
+<div class="pure-u-1-3">
+    <div class="pure-menu pure-menu-open">
+        <ul>
+            <li class="pure-menu-heading">Bem-vindo, {{ user }}</li>
+            {% load_my_courses user as enrollments %}
+            <li class="pure-menu-heading">Cursos</li>
+            {% for enrollment in enrollments %}
+                <li><a href="#"><i class="fa-solid fa-book-open-reader"></i> {{ enrollment.course }} </a></li>
+            {% empty %}
+                <li>Você não está inscrito em um curso.</li>
+            {% endfor %}
+            <li class="pure-menu-heading">Conta</li>
+            <li><a href="{% url 'accounts:edit' %}">
+                <i class="fa-solid fa-user-pen"></i> Editar Conta</a></li>
+            <li><a href="{% url 'accounts:edit_password' %}">
+                <i class="fa-solid fa-lock"></i> Editar Senha</a></li>
+        </ul>
+    </div>
+</div>
+<div class="pure-u-2-3">
+    <div class="inner">
+        {% block dashboard_content %}
+            <h2>Meus Cursos</h2>
+            {% for enrollment in enrollments %}
+            <div class="well">
+                <h3>{{ enrollment.course }} ({{ enrollment.course.start_date|date:'d/m/Y'|default:'Não informado' }})</h3>
+                <p>{{ enrollment.course.description|linebreaks }}</p>
+                <div class="pure-controls">
+                    <a href="#" class="pure-button pure-button-primary">Acessar</a>
+                    <a href="#" class="pure-button pure-error">Cancelar</a>
+                </div>
+            </div>
+            {% empty %}
+            <aside class="pure-u-1">
+                <p>Nenhum curso inscrito.</p>
+            </aside>
+            {% endfor %}
+        {% endblock dashboard_content %}
+    </div>
+</div>
+```
