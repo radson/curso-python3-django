@@ -1,19 +1,28 @@
 {% extends 'base.html' %}
 
+{% load courses_tags %}
+
 {% block content %}
 <div class="pure-g-r content-ribbon">
-    <div class="pure-u-1-3">
+    <div class="pure-u-1">
         <ul class="breadcrumb">
             {% block breadcrumb %}
                 <li><a href="{% url 'accounts:dashboard' %}">Meu Painel</a></li>
             {% endblock breadcrumb %}
             {% comment %} <li><a href="#">Editar Conta</a></li> {% endcomment %}
         </ul>
+    </div>
+    <div class="pure-u-1-3">
         <div class="pure-menu pure-menu-open">
-            <a href="" class="pure-menu-heading"></a>
             <ul>
+                {% comment %} {% my_courses user %} {% endcomment %}
+                {% load_my_courses user as enrollments %}
                 <li class="pure-menu-heading">Meus Cursos</li>
-                <li><a href="#">Curso 1</a></li>
+                {% for enrollment in enrollments %}
+                    <li><a href="#"> {{ enrollment.course }} </a></li>
+                {% empty %}
+                    <li>Você não está inscrito em um curso.</li>
+                {% endfor %}
                 <li class="pure-menu-heading">Minha Conta</li>
                 <li><a href="{% url 'accounts:edit' %}">Editar Conta</a></li>
                 <li><a href="{% url 'accounts:edit_password' %}">Editar Senha</a></li>

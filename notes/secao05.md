@@ -185,3 +185,133 @@ No template `edit.html` do app `accounts`, pode-se remover a verificação da ex
 
 <!-- omitido código sem alteração -->
 ```
+
+## 55. Usando Custom Template Tags
+
+### Objetivos
+
+* Melhorar a navegação do usuário entre os cursos inscritos, criando [template tags customizadas](https://docs.djangoproject.com/en/1.8/howto/custom-template-tags/) com funcinalidades específicas.
+
+### Etapas
+
+* O Django reconhece o diretório com nome `templatetags` como um módulo que  The app should contain a templatetags directory, at the same level as models.py, views.py, etc. If this doesn’t already exist, create it - don’t forget the __init__.py file to ensure the directory is treated as a Python package.
+
+Na view `dashboard` do app `accounts`, incluir uma variável de contexto que irá retornar todos os cursos que o user logado está inscrito.
+
+```Python
+from simplemooc.courses.models import Enrollment
+ # omitido código sem alteração
+
+@login_required
+def dashboard(request):
+    template_name = 'accounts/dashboard.html'
+    context = {}
+    context['enrollments'] = Enrollment.objects.filter(user=request.user)
+
+    return render(request, template_name, context)
+```
+
+No template `dashboard.html`, na div que contém o menu, implementar o uso da variável `enrollments` com os cursos encontrados.
+
+```Django
+ <div class="pure-menu pure-menu-open">
+    <ul>
+        <li class="pure-menu-heading">Meus Cursos</li>
+        {% for enrollment in enrollments %}
+            <li><a href="#"> {{ enrollment.course }} </a></li>
+        {% empty %}
+            <li>Você não está inscrito em um curso.</li>
+        {% endfor %}
+        <li class="pure-menu-heading">Minha Conta</li>
+        <li><a href="{% url 'accounts:edit' %}">Editar Conta</a></li>
+        <li><a href="{% url 'accounts:edit_password' %}">Editar Senha</a></li>
+    </ul>
+</div>
+```
+
+Esta primeira abordagem poderá apresentar inconsistências ao navegar em outras páginas da aplicação que compartilham do mesmo menu mas que não tem a mesma variável de contexto. Repetir o código implementando esta variável em outras views não seria uma boa prática. Para isso que será utilizado o recurso de custom template tags.
+
+Na app `courses` no mesmo nível de `models.py`, criar o diretório `templatetags` como um módulo Python (incluir arquivo `__init__.py` dentro do diretório criado).  Dentro do `templatetags` criar o arquivo `courses_tags.py` que conterá o código para a custom tag. Será uma tag de inclusão de código, que quando for invocada em um template irá inserir o código definido no templatetag.
+
+```Bash
+mkdir -p simplemooc/courses/templatetags
+> simplemooc/courses/templatetags/__init__.py
+> simplemooc/courses/templatetags/courses_tags.py
+```
+
+Em `courses_tags.py`, criar o método `my_courses` e registra-lo como tag usando o decorator `register`, que usará o método `inclusion_tag`, definindo o caminho do template a ser inserido. Este método retorna uma variável de contexto com os cursos.
+
+```Python
+from django.template import Library
+
+from simplemooc.courses.models import Enrollment
+
+register = Library()
+
+@register.inclusion_tag('courses/templatetags/my_courses.html')
+def my_courses(user):
+    enrollments = Enrollment.objects.filter(user=user)
+    context = {
+        'enrollments': enrollments
+    }
+
+    return context
+```
+
+Criar em `simplemooc/courses/templates/templatetags/my_courses.html` o código do template que deverá ser incluído. É o mesmo código definido anteriormente em `dashboard.html`.
+
+```Django
+<li class="pure-menu-heading">Meus Cursos</li>
+{% for enrollment in enrollments %}
+    <li><a href="#"> {{ enrollment.course }} </a></li>
+{% empty %}
+    <li>Você não está inscrito em um curso.</li>
+{% endfor %}
+```
+
+No template `dashboard.html` o código anteriormente definido, pode ser alterado para a forma a seguir:
+
+```Django
+{% load courses_tags %}
+<!-- omitido código sem alteração -->
+<div class="pure-menu pure-menu-open">
+    <ul>
+        {% my_courses user %}
+
+        <!-- omitido código sem alteração -->
+    </ul>
+</div>
+```
+
+Neste techo acima, carregando o `courses_tags`, pode-se fazer uso da tag `my_courses` passando como parametro o usuário logado. Com isso, o trecho de código que está no template `my_courses.html` é inserido no HTML.
+
+Outra abordagem mais flexível é registrar uma tag com `assignment_tag` que permite passar apenas a variável de contexto com os dados desejados sem o HTML. 
+
+Em `courses_tags.py`, criar o método `load_my_courses` e registra-lo com `assignment_tag`. Este método retorna uma variável de contexto com os cursos.
+
+```Python
+# omitido código sem alteração
+
+@register.assignment_tag()
+def load_my_courses(user):
+    return Enrollment.objects.filter(user=user)
+```
+
+No template `dashboard.html` o código voltaria a ser como no início, com a diferença de que será necessário carregar a tag `load_my_courses` como a variável `enrollments`, conforme forma a seguir:
+
+```Django
+<div class="pure-menu pure-menu-open">
+    <ul>
+        {% load_my_courses user as enrollments %}
+        <li class="pure-menu-heading">Meus Cursos</li>
+        {% for enrollment in enrollments %}
+            <li><a href="#"> {{ enrollment.course }} </a></li>
+        {% empty %}
+            <li>Você não está inscrito em um curso.</li>
+        {% endfor %}
+        <!-- omitido código sem alteração -->
+    </ul>
+</div>
+```
+
+Ambas abordagens atendem ao propósito desta aula, ficando a critério de cada cenário qual escolher. 
