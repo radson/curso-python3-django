@@ -617,3 +617,66 @@ Por fim, no template `dashboard.html`, incluir a nova URL.
 <!-- omitido código sem alteração -->
 <a href={% url 'courses:undo_enrollment' enrollment.course.slug %} class="pure-button pure-error">Cancelar</a>
 ```
+
+## 59. Modelagem e Admin dos Anúncios
+
+### Objetivos
+
+* Implementar as páginas internas dos cursos. Primeiramente modelando o anuncio de cursos.
+
+### Etapas
+
+Na app `courses`, adicionar no arquivo `models.py` os models para Anúncios e Comentários
+
+```Python
+class Announcement(models.Model):
+    course = models.ForeignKey(Course, verbose_name='Curso')
+    title = models.CharField('Título', max_length=100)
+    content = models.TextField('Conteúdo')
+    created_at = models.DateTimeField(
+        'Criado em', auto_now=False, auto_now_add=True)
+    update_at = models.DateTimeField(
+        'Atualizado em', auto_now=True, auto_now_add=False)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = 'Anúncio'
+        verbose_name_plural = 'Anúncios'
+        ordering = ['-created_at']
+
+
+class Comment(models.Model):
+    announcement = models.ForeignKey(
+        Announcement, verbose_name='Anúncio', related_name='comments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='usuário')
+    comment = models.TextField('Comentário')
+    created_at = models.DateTimeField(
+        'Criado em', auto_now=False, auto_now_add=True)
+    update_at = models.DateTimeField(
+        'Atualizado em', auto_now=True, auto_now_add=False)
+
+    class Meta:
+        verbose_name = 'Comentário'
+        verbose_name_plural = 'Comentários'
+        ordering = ['created_at']
+```
+
+Em seguida realizar a migração no banco de dados.
+
+```Shell
+python manage.py makemigrations
+python manage.py migrate
+```
+
+No arquivo `admin.py`, incluir os models recem criados para permitir gerencimanento pela interface de administração e validar que o funcionamento.
+
+```Python
+from .models import Announcement, Comment, Course, Enrollment
+# omitido código sem alteração
+
+admin.site.register([Announcement, Comment, Enrollment])
+```
+
+Acessar a url `http://localhost:8000/admin`.
