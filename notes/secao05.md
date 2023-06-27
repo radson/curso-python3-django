@@ -419,7 +419,7 @@ def announcements(request, slug):
     return render(request, template, context)
 ```
 
-No arquivo de rotas `courses/urls.py` adicinoar a nova url:
+No arquivo de rotas `courses/urls.py` adicionar a nova url:
 
 ```Python
 urlpatterns = [
@@ -501,4 +501,119 @@ No template `dashboard.html` será necessário algumas alterações para acomoda
 <!-- omitido código sem alteração -->
 
 <a href={% url 'courses:announcements' enrollment.course.slug %} class="pure-button pure-button-primary">Acessar</a>
+```
+
+## 58. Cancelando a inscrição no curso
+
+### Objetivos
+
+* Implementando a funcionalidade de cancelar inscrição no curso.
+
+### Etapas
+
+No app `courses`, adicionar uma nova view para permitir cancelar inscrição. Aqui a lógica é parecida com a os do anuncios, primeiro busca o curso a partir da `slug` em seguida a inscrição a partir do `course` e do `user` logado.
+
+```Python
+# omitido código sem alteração
+@login_required
+def undo_enrollment(request, slug):
+    course = get_object_or_404(Course, slug=slug)
+    enrollment = get_object_or_404(
+        Enrollment, user=request.user, course=course)
+
+    if request.method == 'POST':
+        enrollment.delete()
+        messages.success(request, 'Inscrição cancelada com sucesso.')
+        return redirect('accounts:dashboard')
+
+    template = 'courses/undo_enrollment.html'
+    context = {
+        'enrollment': enrollment,
+        'course': course,
+    }
+
+    return render(request, template, context)
+```
+No arquivo de rotas `courses/urls.py` adicionar a nova url:
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^(?P<slug>[\w_-]+)/cancelar-inscricao/$',
+        views.undo_enrollment, name='undo_enrollment'),
+]
+```
+
+Criar o novo template em `courses/templates/courses/course_dashboard.html`. Este template vai extender de `dashboard.html` e possuir um bloco `menu_options` para ser incluído no bloco do menu do `dashboard.html`, usando a tag `block.super`, o conteúdo será movido do template `announcements.html`. Haverá também o bloco `breadcrumb` para indicar em qual página de curso está navegando no momento.
+
+```Django
+{% extends 'accounts/dashboard.html' %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    <li>/</li>
+    <li><a href="{% url 'courses:announcements' course.slug %}">{{ course }}</a></li>
+{% endblock breadcrumb %}
+
+{% block menu_options %}
+<li class="pure-menu-heading">
+    {{ course }}
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-video-camera"></i> Aulas e Materiais
+    </a>
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-info-circle"></i> Informações
+    </a>
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-envelope"></i> Anúncios
+    </a>
+</li>
+<li>
+    <a href="#">
+        <i class="fa fa-comments"></i> Fórum de Dúvidas
+    </a>
+</li>
+{{ block.super }}
+{% endblock menu_options %}
+```
+
+O conteúdo do template `announcements.html` ficará como a seguir:
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block dashboard_content %}
+    <div class="well">
+    </div>
+{% endblock dashboard_content %}
+```
+
+Criar o novo template em `courses/templates/courses/undo_enrollment.html`. Este template vai extender de `course_dashboard.html` e possuir um bloco `dashboard_content` para ser incluído no bloco do menu do `dashboard.html`. 
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block dashboard_content %}
+<form action="" method="post">
+    {% csrf_token %}
+    <h3>Você deseja cancelar a inscrição deste curso?</h3>
+    <div class="pure-controls">
+        <button type="submit" class="pure-button pure-button-primary">Confirmar</button>
+        <a href={% url 'courses:announcements' course.slug %} class="pure-button">Cancelar</a>
+    </div>
+</form>
+{% endblock dashboard_content %}
+```
+
+Por fim, no template `dashboard.html`, incluir a nova URL.
+
+```Django
+<!-- omitido código sem alteração -->
+<a href={% url 'courses:undo_enrollment' enrollment.course.slug %} class="pure-button pure-error">Cancelar</a>
 ```

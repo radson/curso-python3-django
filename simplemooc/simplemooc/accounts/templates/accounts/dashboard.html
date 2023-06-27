@@ -45,7 +45,7 @@
                     <p>{{ enrollment.course.description|linebreaks }}</p>
                     <div class="pure-controls">
                         <a href={% url 'courses:announcements' enrollment.course.slug %} class="pure-button pure-button-primary">Acessar</a>
-                        <a href="#" class="pure-button pure-error">Cancelar</a>
+                        <a href={% url 'courses:undo_enrollment' enrollment.course.slug %} class="pure-button pure-error">Cancelar</a>
                     </div>
                 </div>
                 {% empty %}
