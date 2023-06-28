@@ -680,3 +680,65 @@ admin.site.register([Announcement, Comment, Enrollment])
 ```
 
 Acessar a url `http://localhost:8000/admin`.
+
+## 60. Listagem de Anúncios
+
+### Objetivos
+
+* Implementar listagem dos anuncios de cursos.
+
+### Etapas
+
+No model `Announcement`, adicionar o `related_name` na ForeignKey `course` para ser possível listar os anúncios a partir do curso.
+
+```Python
+class Announcement(models.Model):
+    course = models.ForeignKey(
+        Course, verbose_name='Curso', related_name='announcements')
+    # omitido código sem alteração
+```
+
+Na view `announcements`, incluir a variável de contexto com todos os registros de anúncio de um curso.
+
+```Python
+def announcements(request, slug):
+    # omitido código sem alteração
+    context = {
+        'course': course,
+        'announcements': course.announcements.all()
+```
+
+No conteúdo do template `announcements.html` incluir um `for` para a variável `announcements` dentro do bloco `dashboard_content`. Neste caso faz-se o uso do das tags [with](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#with) que faz o cache dos registros da variável `announcements` sem causar uma nova consulta no banco de dados. Além do uso da tag [pluralize](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#pluralize) que retorna o sufixo de um valor se ele não for 1, por default acrescenta o 's'. 
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block dashboard_content %}
+    {% for announcement in announcements %}
+        <div class="well">
+            <h2>{{ announcement.title }}</h2>
+            {{ annoucemtent.content|linebreaks}}
+            <p>
+                <a href="#comments">
+                    <i class="fa fa-comment"></i>
+                    {% with announcement.comments.count as comments_count %}
+                        {{ comments_count }}
+                        Comentário{{ comments_count|pluralize }}
+                    {% endwith %}
+                </a>
+            </p>
+        </div>
+    {% empty %}
+        <div class="well">
+            <h2>Nenhum anúncio criado.</h2>
+        </div>
+    {% endfor %}
+{% endblock dashboard_content %}
+```
+
+Para testar deve-se adicionar alguns comentários através da interface de adminsitração do Django.
+
+
+
+
+
