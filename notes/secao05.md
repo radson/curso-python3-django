@@ -831,3 +831,87 @@ Alterar o template `announcements.html` para incluir o link para a URL da view `
     </p>
 </div>
 ```
+
+## 62. Comentando os Anúncios
+
+### Objetivos
+
+* Implementar form que permite cadastrar comentários.
+
+### Etapas
+
+No `forms.py` da app `courses` adicionar novo form herdando de ModelForm para inclusão de comentário:
+
+```Python
+from .models import Comment
+# omitido código sem alteração
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['comment']
+```
+
+Em `views.py` modificar a view `show_announcement` para incluir o form. Na instancia do CommentForm, utilizou-se o `commit=False` (disponível apenas para ModelForm) que não salva imediatamente o registro no banco, ele vai fazer o save pegar os valores do formulário e passar para o objeto e retornar este objeto. Em seguida inclui-se o `user` e o `announcement` ai então faz-se o `save()`. Passa-se também o form para o contexto.
+
+```Python
+from .forms import CommentForm
+
+# omitido código sem alteração
+announcement = get_object_or_404(course.announcements.all(), pk=pk)
+    form = CommentForm(request.POST or None)
+
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        comment.announcement = announcement
+        comment.save()
+
+        form = CommentForm()
+        messages.success(request, 'Comentário enviado com sucesso.')
+
+    template = 'courses/show_announcements.html'
+    context = {
+        'course': course,
+        'announcement': announcement,
+        'form': form,
+    }
+
+    return render(request, template, context)
+```
+
+No template `show_announcements.html` implementa-se o `form`, logo após o fim do `{% endfor %}` que exibe os `announcements`. 
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    <li>/</li>
+    <li><a href="{% url 'courses:show_announcement' course.slug announcement.pk %}">{{ announcement }}</a></li>
+{% endblock breadcrumb %}
+
+<!-- omitido código sem alteração -->
+
+{% endfor %}
+<form method="post" class="pure-form pure-form-stacked" id="add_comment">
+    {% csrf_token %}
+    <fieldset>
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            <div class="pure-control-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ fiel.errors }}
+            </div>
+        {% endfor %}
+        <div class="pure-controls">
+            <button type="submit" class="pure-button pure-button-primary">Enviar</button>
+        </div>
+    </fieldset>
+</form>
+```
+
+
+
+

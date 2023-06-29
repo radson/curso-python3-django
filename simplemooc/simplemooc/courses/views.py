@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import ContactCourse
+from .forms import CommentForm, ContactCourse
 from .models import Announcement, Course, Enrollment
 
 
@@ -101,6 +101,7 @@ def announcements(request, slug):
 @login_required
 def show_announcement(request, slug, pk):
     course = get_object_or_404(Course, slug=slug)
+
     if not request.user.is_staff:
         enrollment = get_object_or_404(
             Enrollment, user=request.user, course=course)
@@ -110,11 +111,22 @@ def show_announcement(request, slug, pk):
             return redirect('accounts:dashboard')
 
     announcement = get_object_or_404(course.announcements.all(), pk=pk)
+    form = CommentForm(request.POST or None)
+
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        comment.announcement = announcement
+        comment.save()
+
+        form = CommentForm()
+        messages.success(request, 'Comentário enviado com sucesso.')
 
     template = 'courses/show_announcements.html'
     context = {
         'course': course,
-        'announcement': announcement
+        'announcement': announcement,
+        'form': form,
     }
 
     return render(request, template, context)
