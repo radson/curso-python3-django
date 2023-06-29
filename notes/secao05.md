@@ -912,6 +912,49 @@ No template `show_announcements.html` implementa-se o `form`, logo após o fim d
 </form>
 ```
 
+## 63. Usando signal para enviar e-mail
 
+### Objetivos
+
+* Notificar por e-mail quando houver anuncio usando o recurso [Signals](https://docs.djangoproject.com/en/1.11/topics/signals/) do Django.
+
+### Etapas
+
+Os sinais permitem que certos remetentes notifiquem um conjunto de receptores de que alguma ação ocorreu. 
+
+Em `models.py`, adicionar um método para tratar o post_save de quando um anúncio é criado. A variável `instance` refere-se ao anúncio, para cada inscrição é no curso será enviado um e-mail para a conta associada informando de um novo anúncio, por isso verifica-se o `created`.
+
+O signal `models.signals.post_save.connect` com a função `connect` faz a ligação entre o sinal e a função criada.
+
+```Python
+from simplemooc.core.mail import send_mail_template
+# omitido código sem alteração
+
+def post_save_announcement(instance, created, **kwargs):
+    if created:
+        subject = instance.title
+        context = {
+            'announcement': instance
+        }
+
+        template_name = 'courses/announcement_mail.html'
+        enrollments = Enrollment.objects.filter(
+            course=instance.course, status=1)
+
+        for enrollment in enrollments:
+            recipient_list = [enrollment.user.email]
+            send_mail_template(subject, template_name, context, recipient_list)
+
+
+models.signals.post_save.connect(
+    post_save_announcement, sender=Announcement, 
+    dispatch_uid='post_save_announcement')
+```
+
+Para o envio de e-mail, deve-se adicionar novo template em `courses/templates/courses/announcement_mail.html` mostrando apenas o conteúdo do anúncio.
+
+```Django
+{{ announcement.content|linebreaks }}
+```
 
 
