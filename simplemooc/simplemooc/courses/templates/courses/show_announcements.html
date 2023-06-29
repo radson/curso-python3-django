@@ -1,0 +1,25 @@
+{% extends 'courses/course_dashboard.html' %}
+
+{% block dashboard_content %}
+    <div class="well">
+        <h2>{{ announcement.title }}</h2>
+        {{ announcement.content|linebreaks }}
+    </div>
+    <div class="well">
+        <h4 id="comments">Comentários
+            <a href="#add_comment" class="fright"></a>
+        </h4>
+        <hr />
+        {% for comment in announcement.comments.all %}
+            <p>
+                <strong>{{ comment.user }}</strong> disse à {{ comment.created_at|timesince }} atrás: <br>
+                {{ comment.comment|linebreaksbr }}
+            </p>
+            <hr>
+        {% empty %}
+        <p>
+            Nenhum comentário para este anúncio.
+        </p>
+        {% endfor %}
+    </div>
+{% endblock dashboard_content %}

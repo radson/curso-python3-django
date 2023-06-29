@@ -738,7 +738,96 @@ No conteúdo do template `announcements.html` incluir um `for` para a variável 
 
 Para testar deve-se adicionar alguns comentários através da interface de adminsitração do Django.
 
+## 61. Página do Anúncio e Comentários
 
+### Objetivos
 
+* Implementar a página que exibe um anuncio e seus comentários.
 
+### Etapas
 
+Na app `courses` adicionar nova view que retornar os anúncios do curso. O trecho que busca o curso e a inscrição é o mesmo de views anteriores e poderá ser melhorado para evita repetição de código. Adicionalmente faz-se a busca do anúncio pelo curso e chave primária (pk), passando também no contexto.
+
+```Python
+from .models import Announcement
+# omitido código sem alteração
+
+@login_required
+def show_announcement(request, slug, pk):
+    course = get_object_or_404(Course, slug=slug)
+    if not request.user.is_staff:
+        enrollment = get_object_or_404(
+            Enrollment, user=request.user, course=course)
+
+        if not enrollment.is_approved():
+            messages.error(request, "A sua inscrição está pendente.")
+            return redirect('accounts:dashboard')
+
+    announcement = get_object_or_404(course.announcements.all(), pk=pk)
+
+    template = 'courses/show_announcements.html'
+    context = {
+        'course': course,
+        'announcement': announcement
+    }
+
+    return render(request, template, context)
+```
+
+Atualizar arquivo de rotas, desta vez incluindo também o tratamento da pk na URL. 
+
+```Python
+urlpatterns = [
+    url(r'^(?P<slug>[\w_-]+)/anuncios/(?P<pk>\d+)/$',
+        views.show_announcement, name='show_announcement'),
+]
+```
+
+Adicionar novo template em `courses/templates/courses/show_announcements.html`, este terá uma estrutura inicial parecida com `announcements.html`.  Neste template foi feito o uso do filtro [timesince](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#timesince) que formata uma data como a hora desde essa data. 
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block dashboard_content %}
+    <div class="well">
+        <h2>{{ announcement.title }}</h2>
+        {{ announcement.content|linebreaks }}
+    </div>
+    <div class="well">
+        <h4 id="comments">Comentários
+            <a href="#add_comment" class="fright"></a>
+        </h4>
+        <hr />
+        {% for comment in announcement.comments.all %}
+            <p>
+                <strong>{{ comment.user }}</strong> disse à {{ comment.created_at|timesince }} atrás: <br>
+                {{ comment.comment|linebreaksbr }}
+            </p>
+            <hr>
+        {% empty %}
+        <p>
+            Nenhum comentário para este anúncio.
+        </p>
+        {% endfor %}
+    </div>
+{% endblock dashboard_content %}
+```
+
+Alterar o template `announcements.html` para incluir o link para a URL da view `show_announcement` no título e na âncora para os comentários.
+
+```Django
+<!-- omitido código sem alteração -->
+<div class="well">
+    <h2>
+        <a href={% url 'courses:show_announcement' course.slug announcement.pk %}>
+            {{ announcement.title }}
+        </a>
+    </h2>
+    {{ annoucemtent.content|linebreaks}}
+    <p>
+        <a href="{% url 'courses:show_announcement' course.slug announcement.pk %}#comments">
+            <!-- omitido código sem alteração -->
+        </a>
+    </p>
+</div>
+```
