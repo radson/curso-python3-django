@@ -1049,3 +1049,93 @@ admin.site.register(Course, CourseAdmin)
 admin.site.register([Announcement, Comment, Enrollment, Material])
 admin.site.register(Lesson, LessonAdmin)
 ```
+
+## 66. Decorator para Acesso ao Curso
+
+### Objetivos
+
+* Criar um decorator para promover reutilização do código que consulta o curso para as últimas views implementadas.
+
+### Etapas
+
+Na app `courses` adicionar o arquivo `decorators.py` que irá conter a lógica de validação se um usuário tem permissão para visualizar um curso.
+
+```Python
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+
+from .models import Course, Enrollment
+
+def enrollment_required(view_func):
+    def _wrapper(request, *args, **kwargs):
+        slug = kwargs['slug']
+        course = get_object_or_404(Course, slug=slug)
+        has_permission = request.user.is_staff
+
+        if not has_permission:
+            try:
+                enrollment = Enrollment.objects.get(
+                    user=request.user, course=course
+                )
+            except Enrollment.DoesNotExist:
+                message = 'Desculpe, mas você não tem permissão para ' \
+                    + 'acessar esta página'
+            else:
+                if enrollment.is_approved():
+                    has_permission = True
+                else:
+                    message = 'A sua inscrição no curso ainda está ' \
+                        + 'está pendente.'
+
+        if not has_permission:
+            messages.error(request, message)
+            return redirect('accounts:dashboard')
+
+        request.course = course
+        return view_func(request, *args, **kwargs)
+```
+
+No arquivo `views.py`, realizar as alterações para remover o código anteriormente duplicado e fazer uso do novo decorator. Nas views em que o código duplicado foi removido, o valor do curso agora será consultado no request que o decorator enviou.
+
+```Python
+from .decorators import enrollment_required
+
+@login_required
+@enrollment_required
+def announcements(request, slug):
+    course = request.course
+
+    template = 'courses/announcements.html'
+    context = {
+        'course': course,
+        'announcements': course.announcements.all()
+    }
+    return render(request, template, context)
+
+@login_required
+@enrollment_required
+def show_announcement(request, slug, pk):
+    course = request.course
+
+    announcement = get_object_or_404(course.announcements.all(), pk=pk)
+    form = CommentForm(request.POST or None)
+
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        comment.announcement = announcement
+        comment.save()
+
+        form = CommentForm()
+        messages.success(request, 'Comentário enviado com sucesso.')
+
+    template = 'courses/show_announcements.html'
+    context = {
+        'course': course,
+        'announcement': announcement,
+        'form': form,
+    }
+
+    return render(request, template, context)
+```
+
