@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Announcement, Comment, Course, Enrollment
+from .models import Announcement, Comment, Course, Enrollment, Lesson, Material
 
 
 class CourseAdmin(admin.ModelAdmin):
@@ -9,5 +9,20 @@ class CourseAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
+class MaterialInlineAdmin(admin.StackedInline):
+    model = Material
+
+
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ['name', 'number', 'course', 'release_date']
+    search_fields = ['name', 'description']
+    list_filter = ['created_at']
+
+    inlines = [
+        MaterialInlineAdmin
+    ]
+
+
 admin.site.register(Course, CourseAdmin)
-admin.site.register([Announcement, Comment, Enrollment])
+admin.site.register([Announcement, Comment, Enrollment, Material])
+admin.site.register(Lesson, LessonAdmin)

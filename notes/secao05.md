@@ -1018,3 +1018,34 @@ Em seguida realizar a migração no banco de dados.
 python manage.py makemigrations
 python manage.py migrate
 ```
+
+## 65. Admin das Aulas
+
+### Objetivos
+
+* Implementar suporte para Aulas e Materiais no painel de adminsitração do Django
+
+### Etapas
+
+No `admin.py` adicionar modelagem criados anteriormente. A interface administrativa tem a capacidade de editar modelos na mesma página que um modelo pai. Estes são chamados de [inline](https://docs.djangoproject.com/pt-br/1.11/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin). Para esta implementação será usado o modo `StackedInline`.
+
+```Python
+from .models import Lesson, Material
+
+class MaterialInlineAdmin(admin.StackedInline):
+    model = Material
+
+
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ['name', 'number', 'course', 'release_date']
+    search_fields = ['name', 'description']
+    list_filter = ['created_at']
+
+    inlines = [
+        MaterialInlineAdmin
+    ]
+
+admin.site.register(Course, CourseAdmin)
+admin.site.register([Announcement, Comment, Enrollment, Material])
+admin.site.register(Lesson, LessonAdmin)
+```
