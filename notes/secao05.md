@@ -1169,45 +1169,74 @@ class Lesson(models.Model):
         return False
 ```
 
-Adicionar nova view `lessons` que retorna as aulas de um curso.
+Adicionar nova view `lessons` que retorna as aulas de um curso e a view `lesson` para retornar uma aula específica a partir da `pk`.
 
 ```Python
+from .models Lesson
 # omitido código sem alteração
 
 @login_required
 @enrollment_required
 def lessons(request, slug):
     course = request.course
+    lessons = course.release_lessons()
+
+    if request.user.is_staff:
+        lessons = course.lessons.all()
+
     template = 'courses/lessons.html'
     context = {
-        'course': course
+        'course': course,
+        'lessons': lessons
+    }
+
+    return render(request, template, context)
+
+
+@login_required
+@enrollment_required
+def lesson(request, slug, pk):
+    course = request.course
+    lesson = get_object_or_404(Lesson, pk=pk, course=course)
+
+    if not request.user.is_staff and not lesson.is_available():
+        messages.error(request, 'Esta aula não está disponivel')
+        return redirect('courses:lessons', slug=course.slug)
+
+    template = 'courses/lesson.html'
+    context = {
+        'course': course,
+        'lesson': lesson
     }
 
     return render(request, template, context)
 ```
 
-Atualizar rotas em `urls.py` para nova view.
+Atualizar rotas em `urls.py` para as novas views, sendo que `lesson` recebe o parâmetro nomeado `pk` que pode ser 1 ou mais dígitos.
 
 ```Python
 urlpatterns = [
     # omitido código sem alteração
     url(r'^(?P<slug>[\w_-]+)/aulas/$', views.lessons, name='lessons'),
+    url(r'^(?P<slug>[\w_-]+)/aulas/(?P<pk>\d+)/$', views.lesson, name='lesson'),
 ]
 ```
 
-Criar o novo template em `courses/templates/courses/lessons.html`. Este template vai extender de `course_dashboard.html`. Neste template utilizou-se a tag filter [truncatewords](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#truncatewords) que trunca uma string depois de certo número de caracteres.
+Criar os novos templates `lessons.html` e `lesson.html` em `courses/templates/courses/`. Ambos vão extender de `course_dashboard.html`. Neste template utilizou-se a tag filter [truncatewords](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#truncatewords) que trunca uma string depois de certo número de caracteres.
+
+Conteúdo de `lessons.html`
 
 ```Django
 {% extends 'courses/course_dashboard.html' %}
 
 {% block dashboard_content %}
-    {% for lesson in course.release_lessons %}
+    {% for lesson in lessons %}
         <div class="well">
-            <h2> <a href="#">{{ lesson }}</a> </h2>
+            <h2> <a href={% url 'courses:lesson' course.slug lesson.pk %}>{{ lesson }}</a> </h2>
             <p>
                 {{ lesson.description|truncatewords:'20'}}
                 <br>
-                <a href="#">
+                <a href={% url 'courses:lesson' course.slug lesson.pk %}>
                     <i class="fa fa-eye"></i>
                     Acessar Aula
                 </a>
@@ -1220,6 +1249,16 @@ Criar o novo template em `courses/templates/courses/lessons.html`. Este template
             </h2>
         </div>
     {% endfor %}
+{% endblock dashboard_content %}
+```
+
+Conteúdo inicial  de `lesson.html`, o restante será implementado na próxima aula.
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block dashboard_content %}
+
 {% endblock dashboard_content %}
 ```
 

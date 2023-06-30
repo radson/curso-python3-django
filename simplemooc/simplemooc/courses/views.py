@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .decorators import enrollment_required
 from .forms import CommentForm, ContactCourse
-from .models import Announcement, Course, Enrollment
+from .models import Announcement, Course, Enrollment, Lesson
 
 
 def index(request):
@@ -124,9 +124,34 @@ def show_announcement(request, slug, pk):
 @enrollment_required
 def lessons(request, slug):
     course = request.course
+    lessons = course.release_lessons()
+
+    if request.user.is_staff:
+        lessons = course.lessons.all()
+
     template = 'courses/lessons.html'
     context = {
-        'course': course
+        'course': course,
+        'lessons': lessons
+    }
+
+    return render(request, template, context)
+
+
+@login_required
+@enrollment_required
+def lesson(request, slug, pk):
+    course = request.course
+    lesson = get_object_or_404(Lesson, pk=pk, course=course)
+
+    if not request.user.is_staff and not lesson.is_available():
+        messages.error(request, 'Esta aula não está disponivel')
+        return redirect('courses:lessons', slug=course.slug)
+
+    template = 'courses/lesson.html'
+    context = {
+        'course': course,
+        'lesson': lesson
     }
 
     return render(request, template, context)

@@ -16,4 +16,6 @@ urlpatterns = [
         views.show_announcement, name='show_announcement'),
     url(r'^(?P<slug>[\w_-]+)/aulas/$',
         views.lessons, name='lessons'),
+    url(r'^(?P<slug>[\w_-]+)/aulas/(?P<pk>\d+)/$',
+        views.lesson, name='lesson'),
 ]
