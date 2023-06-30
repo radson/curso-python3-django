@@ -79,7 +79,7 @@ class Lesson(models.Model):
 class Material(models.Model):
     name = models.CharField("Nome", max_length=100)
     embedded = models.TextField('Vídeo embedded', blank=True)
-    file = models.ImageField(
+    file = models.FileField(
         upload_to='lessons/materials', null=True, blank=True)
 
     lesson = models.ForeignKey(
