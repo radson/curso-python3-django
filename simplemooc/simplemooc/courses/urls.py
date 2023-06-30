@@ -18,4 +18,6 @@ urlpatterns = [
         views.lessons, name='lessons'),
     url(r'^(?P<slug>[\w_-]+)/aulas/(?P<pk>\d+)/$',
         views.lesson, name='lesson'),
+    url(r'^(?P<slug>[\w_-]+)/materiais/(?P<pk>\d+)/$',
+        views.material, name='material'),
 ]

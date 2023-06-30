@@ -995,7 +995,7 @@ class Lesson(models.Model):
 class Material(models.Model):
     name = models.CharField("Nome", max_length=100)
     embedded = models.TextField('Vídeo embedded', blank=True)
-    file = models.ImageField(
+    file = models.FileField(
         upload_to='lessons/materials', null=True, blank=True)
 
     lesson = models.ForeignKey(
@@ -1172,7 +1172,7 @@ class Lesson(models.Model):
 Adicionar nova view `lessons` que retorna as aulas de um curso e a view `lesson` para retornar uma aula específica a partir da `pk`.
 
 ```Python
-from .models Lesson
+from .models import Lesson
 # omitido código sem alteração
 
 @login_required
@@ -1278,4 +1278,148 @@ No template `course_dashboard.html`, atualizar as urls para aulas e anuncios.
     </a>
 </li>
 <!-- omitido código sem alteração -->
+```
+
+## 68. Exibição do Material (embedded)
+
+### Objetivos
+
+* Implementar a exibição do conteúdo da aula (arquivos e embedded).
+
+### Etapas
+
+Adicionar nova view `material`, nela há uma verificação se não for `embedded`, retorna a url do arquivo para baixar.
+
+```Python
+from .models import  Material
+# omitido código sem alteração
+
+@login_required
+@enrollment_required
+def material(request, slug, pk):
+    course = request.course
+    material = get_object_or_404(Material, pk=pk, lesson__course=course)
+    lesson = material.lesson
+
+    if not request.user.is_staff and not lesson.is_available():
+        messages.error(request, 'Este material não está disponivel')
+        return redirect('courses:lesson', slug=course.slug, pk=lesson.pk)
+
+    if not material.is_embedded():
+        return redirect(material.file.url)
+
+    template = 'courses/material.html'
+    context = {
+        'course': course,
+        'lesson': lesson,
+        'material': material
+    }
+
+    return render(request, template, context)
+```
+
+Criar o novo template em `courses/templates/courses/material.html`. Possui a mesma estrutura dos anteriores, neste template faz-se o uso da tag filter [safe](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#safe) que escapa o conteúdo do campo `embedded`. Neste caso, para fins didáticos, não foram consideradas medidas de segurança mais restritas, porém é uma boa prática pra evitar código malicioso.
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    <li>/</li>
+    <li><a href="{% url 'courses:lessons' course.slug %}">Aulas</a></li>
+    <li>/</li>
+    <li><a href="{% url 'courses:lesson' course.slug  lesson.pk %}">{{ lesson }}</a></li>
+    <li>/</li>
+    <li><a href="{% url 'courses:material' course.slug  material.pk %}">{{ material }}</a></li>
+{% endblock breadcrumb %}
+
+{% block dashboard_content %}
+<div class="well">
+    <h2><a href="{% url 'courses:material' course.slug  material.pk %}">{{ material }}</a></h2>
+    {{ material.embedded|safe }}
+    <p>
+        <a href="{% url 'courses:lesson' course.slug  lesson.pk %}">Voltar</a>
+    </p>
+</div>
+
+{% endblock dashboard_content %}
+```
+
+Atualizar rotas em `urls.py` para nova view.
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^(?P<slug>[\w_-]+)/materiais/(?P<pk>\d+)/$',
+        views.material, name='material'),
+]
+```
+
+Adicionar o conteúdo do template `lesson.html`. Aqui foi utilizada a tag filter [cycle](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#cycle) que faz alternância dos parametros dentro de um for, neste caso para produzir o efeito de zebrado da tabela, alternando a class da tag `tr`.
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    <li>/</li>
+    <li><a href="{% url 'courses:lessons' course.slug %}">Aulas</a></li>
+    <li>/</li>
+    <li><a href="{% url 'courses:lesson' course.slug  lesson.pk %}">{{ lesson }}</a></li>
+{% endblock breadcrumb %}
+
+{% block dashboard_content %}
+    <div class="well">
+        <h2><a href="{% url 'courses:lesson' course.slug  lesson.pk %}">{{ lesson }}</a></h2>
+        {{ lesson.description|linebreaks }}
+        <p>
+            <h4>Matereial da Aula</h4>
+            <table class="pure-table full">
+                <thead>
+                    <tr>
+                        <th>
+                            Nome
+                        </th>
+                        <th>
+                            Ação
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for material in lesson.materials.all %}
+                        <tr class={% cycle '' 'pure-table-odd' %}>
+                            <td>
+                                {{ material }}
+                            </td>
+                            <td>
+                                {% if material.is_embedded %}
+                                    <a href={% url 'courses:material' course.slug  material.pk %}>
+                                        <i class="fa fa-video-camera"></i>
+                                        Acessar
+                                    </a>
+                                {% else %}
+                                    <a target="_blank" href="{{ material.file.url }}">
+                                        <i class="fa fa-download"></i>
+                                        Baixar
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </p>
+    </div>
+    
+{% endblock dashboard_content %}
+```
+
+No template `lessons.html` foi adicionado o `breadcrumb` antes do bloco `dashboard_content`.
+
+```Django
+{% block breadcrumb %}
+    {{ block.super }}
+    <li>/</li>
+    <li><a href="{% url 'courses:lessons' course.slug %}">Aulas</a></li>
+{% endblock breadcrumb %}
 ```
