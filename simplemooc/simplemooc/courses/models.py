@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from simplemooc.core.mail import send_mail_template
 
@@ -31,6 +32,10 @@ class Course(models.Model):
     def get_absolute_url(self):
         return ("courses:details", (), {"slug": self.slug})
 
+    def release_lessons(self):
+        today = timezone.now().date()
+        return self.lessons.filter(release_date__gte=today)
+
     class Meta:
         verbose_name = "Curso"
         verbose_name_plural = "Cursos"
@@ -58,6 +63,12 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.name
+
+    def is_available(self):
+        if self.release_date:
+            today = timezone.now().date()
+            return self.release_date >= today
+        return False
 
     class Meta:
         verbose_name = 'Aula'

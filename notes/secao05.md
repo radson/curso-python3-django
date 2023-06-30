@@ -1139,3 +1139,104 @@ def show_announcement(request, slug, pk):
     return render(request, template, context)
 ```
 
+## 67. Listagem das Aulas
+
+### Objetivos
+
+* Implementar a listagem das aulas.
+
+### Etapas
+
+No `models.py` da app `courses`, implementar uma propriedade nos models `Courses` e `Lessons` para verificar se a aula está de acordo com a data de liberação cadastrada.
+
+```Python
+from django.utils import timezone
+
+class Course(models.Model):
+# omitido código sem alteração
+
+    def release_lessons(self):
+        today = timezone.now().date()
+        return self.lessons.filter(release_date__gte=today)
+
+
+class Lesson(models.Model):
+# omitido código sem alteração
+    def is_available(self):
+        if self.release_date:
+            today = timezone.now().date()
+            return self.release_date >= today
+        return False
+```
+
+Adicionar nova view `lessons` que retorna as aulas de um curso.
+
+```Python
+# omitido código sem alteração
+
+@login_required
+@enrollment_required
+def lessons(request, slug):
+    course = request.course
+    template = 'courses/lessons.html'
+    context = {
+        'course': course
+    }
+
+    return render(request, template, context)
+```
+
+Atualizar rotas em `urls.py` para nova view.
+
+```Python
+urlpatterns = [
+    # omitido código sem alteração
+    url(r'^(?P<slug>[\w_-]+)/aulas/$', views.lessons, name='lessons'),
+]
+```
+
+Criar o novo template em `courses/templates/courses/lessons.html`. Este template vai extender de `course_dashboard.html`. Neste template utilizou-se a tag filter [truncatewords](https://docs.djangoproject.com/pt-br/1.11/ref/templates/builtins/#truncatewords) que trunca uma string depois de certo número de caracteres.
+
+```Django
+{% extends 'courses/course_dashboard.html' %}
+
+{% block dashboard_content %}
+    {% for lesson in course.release_lessons %}
+        <div class="well">
+            <h2> <a href="#">{{ lesson }}</a> </h2>
+            <p>
+                {{ lesson.description|truncatewords:'20'}}
+                <br>
+                <a href="#">
+                    <i class="fa fa-eye"></i>
+                    Acessar Aula
+                </a>
+            </p>
+        </div>
+    {% empty%}
+        <div class="well">
+            <h2>
+                Nenhuma aula disponível.
+            </h2>
+        </div>
+    {% endfor %}
+{% endblock dashboard_content %}
+```
+
+No template `course_dashboard.html`, atualizar as urls para aulas e anuncios.
+
+```Django
+<!-- omitido código sem alteração -->
+<li>
+    <a href={% url 'courses:lessons' course.slug %}>
+        <i class="fa fa-video-camera"></i> Aulas e Materiais
+    </a>
+</li>
+<!-- omitido código sem alteração -->
+<li>
+    <a href={% url 'courses:announcements' course.slug %}>
+        <i class="fa fa-envelope"></i> Anúncios
+    </a>
+</li>
+<!-- omitido código sem alteração -->
+```

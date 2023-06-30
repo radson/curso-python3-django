@@ -118,3 +118,15 @@ def show_announcement(request, slug, pk):
     }
 
     return render(request, template, context)
+
+
+@login_required
+@enrollment_required
+def lessons(request, slug):
+    course = request.course
+    template = 'courses/lessons.html'
+    context = {
+        'course': course
+    }
+
+    return render(request, template, context)
