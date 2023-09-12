@@ -25,7 +25,7 @@ SECRET_KEY = 'pt4yksu(ml$-%&q7)%fuwkzi7+auh(fn@6+17)lr9b6no3=c@t'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'testserver']
 
 
 # Application definition
@@ -141,4 +141,4 @@ CONTACT_EMAIL = 'contato@simplemooc.com'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_URL = 'accounts:logout'
-AUTH_USER_MODEL= 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User'
