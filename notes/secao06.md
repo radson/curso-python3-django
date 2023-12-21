@@ -208,3 +208,16 @@ Para executar os testes, continua o comando:
 ```Bash
 python manage.py test
 ```
+
+## 73. Introdução ao Deploy no Heroku
+## 74. Ajustando o Deploy no Heroku
+
+### Objetivos
+
+* Preparar a aplicação para executar em um servidor em produção com a plataforma Heroku
+
+### Etapas
+
+A plataforma Heroku deixou de ser gratuita em 2023, por isso a aula de deploy no Heroku não será possível reproduzir na mesma plataforma. 
+
+https://coodesh.com/blog/candidates/heroku-acabou-e-agora-veja-alternativas/
