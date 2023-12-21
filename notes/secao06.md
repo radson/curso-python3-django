@@ -77,3 +77,59 @@ Para executar os testes, utiliza-se o comando:
 ```Bash
 python manage.py test
 ```
+
+## 71. Testando Forms e E-mail
+
+### Objetivos
+
+* Implementar os testes relativos a  uma submissão de formulário
+
+### Etapas
+
+Na app `courses` adicionar o conteúdo para o arquivo `test.py`.
+
+```Python
+from django.core import mail
+from django.test import TestCase
+from django.test.client import Client
+from django.core.urlresolvers import reverse
+from django.conf import settings
+
+from .models import Course
+
+
+class ContactCourseTestCase(TestCase):
+    def setUp(self):
+        self.course = Course.objects.create(name="Django", slug="django")
+
+    def tearDown(self):
+        self.course.delete()
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_contact_form_error(self):
+        data = {"name": "Fulano de Tal", "email": "", "message": ""}
+        client = Client()
+        path = reverse("courses:details", args=[self.course.slug])
+        response = client.post(path, data)
+        self.assertFormError(response, "form", "email", "Este campo é obrigatório.")
+        self.assertFormError(response, "form", "message", "Este campo é obrigatório.")
+
+    def test_contact_form_success(self):
+        data = {"name": "Fulano de Tal", "email": "admin@admin.com", "message": "Oi"}
+        client = Client()
+        path = reverse("courses:details", args=[self.course.slug])
+        response = client.post(path, data)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [settings.CONTACT_EMAIL])
+```
+
+O método `setUp` serve para inicializa cada test case, neste caso cria um objeto do tipo Course. Já o método `tearDown` serve para realizar atividades quando o teste case for concluído. Respectivamente o `setUpClass`  e o `tearDownClass` são executados antes e depois de todos os testes cases. 
+
+O test case `test_contact_form_error` verifica se as mensagens de erro do form são exibidas quando os campos requeridos são vazios. O test case `test_contact_form_success` verifica a quantidade de e-mails enviada é igual a 1 e se o campo 'Para' do e-mail é o mesmo configurado no settings.
