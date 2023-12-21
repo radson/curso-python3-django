@@ -133,3 +133,78 @@ class ContactCourseTestCase(TestCase):
 O método `setUp` serve para inicializa cada test case, neste caso cria um objeto do tipo Course. Já o método `tearDown` serve para realizar atividades quando o teste case for concluído. Respectivamente o `setUpClass`  e o `tearDownClass` são executados antes e depois de todos os testes cases. 
 
 O test case `test_contact_form_error` verifica se as mensagens de erro do form são exibidas quando os campos requeridos são vazios. O test case `test_contact_form_success` verifica a quantidade de e-mails enviada é igual a 1 e se o campo 'Para' do e-mail é o mesmo configurado no settings.
+
+
+## 72. Testando Models com model-mommy
+
+### Objetivos
+
+* Usando o model-mommy para criar dados aleatórios para testes
+* Criar uma estrutura de testes para quando são em grande quantidade
+
+### Etapas
+
+No app `courses`, adicionar um novo módulo `tests` que irá abrigar os arquivos de testes separados por componentes da aplicação, facilitando assim a organização.
+
+```Bash
+cd courses
+mkdir tests
+> tests/__init__.py
+> tests/test_models.py
+> tests/test_views.py
+mv tests.py tests/test_forms.py 
+```
+
+O arquivo `tests.py` continha um teste de form, e vou movido para `tests/test_form.py`. 
+
+Instalar o `model-mommy` para geração de dados aleatórios para os testes.
+
+```Bash
+pip install model_mommy
+```
+
+Para fazer uso do `model_mommy`, será criado um novo test case de models no arquivo `test_models.py`, com o conteúdo a seguir:
+
+```Python
+from django.test import TestCase
+from simplemooc.courses.models import Course
+from model_mommy import mommy
+
+class CourseManagerTestCase(TestCase):
+    def setUp(self):
+        self.courses_django = mommy.make(
+            "courses.Course", name="Python na Web com Django", _quantity=10
+        )
+
+        self.courses_dev = mommy.make(
+            "courses.Course", name="Python para Devs", _quantity=10
+        )
+
+    def tearDown(self):
+        Course.objects.all().delete()
+
+    def test_course_search(self):
+        search = Course.objects.search("django")
+        self.assertEqual(len(search), 10)
+        search = Course.objects.search("devs")
+        self.assertEqual(len(search), 10)
+        search = Course.objects.search("python")
+        self.assertEqual(len(search), 20)
+```
+
+No `setUp`, usando o mommy informa-se o nome do model, os campos que serão utilizados para criação e a quantidade de registros a serem criados. No `tearDown`, todos os objetos criados são excluídos.
+
+O `test_course_search` faz o teste para conferir se a quantidade de registros a partir da string procurada retornar a quantidade de registros conforme esperado.
+
+Para executar os testes, no arquivo `__init__.py`, deve-se realizar as chamadas conforme a seguir:
+
+```Python
+from .test_forms import ContactCourseTestCase
+from .test_models import CourseManagerTestCase
+```
+
+Para executar os testes, continua o comando:
+
+```Bash
+python manage.py test
+```
