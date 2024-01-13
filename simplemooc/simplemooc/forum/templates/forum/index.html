@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-1">
+        <ul class="breadcrumb">
+            <li><a href="#">Início</a></li>
+            <li>/</li>
+            <li><a href="#">Fórum de Discussões</a></li>
+        </ul>
+    </div>
+    <div class="pure-u-1-3">
+        <div class="pure-menu pure-menu-open">
+            <ul>
+                <li class="pure-menu-heading">
+                    Tòpicos do Fórum
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa fa-refresh"></i>
+                        Mais recentes
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa fa-eye"></i>
+                        Mais visualizados
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa fa-comments-o"></i>
+                        Mais Comentados
+                    </a>
+                </li>
+                <li class="pure-menu-heading">Tags</li>
+                <li>
+                    <a href="#" class="tags">
+                        <i class="fa fa-tag"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="pure-u-2-3">
+        <div class="inner">
+            <div class="well">
+                <h3><a href="" title="">Título</a></h3>
+                <h5>
+                    Criado por Autor | 0 resposta | 0 Visualização 
+                </h5>
+                <p>
+                    <i class="fa fa-tags"></i>
+                    Tags: 
+                    <a href="#" title="">TAG1</a>
+                    <a class="fright" href="" title="">Atualizado a 1 hora atrás</a>
+                </p>
+            </div>
+            <ul class="pagination pagination-centered">
+                <li>
+                    <a href="#" title="">Anterior</a>
+                </li>
+
+                <li>
+                    <a href="#" title="">Página 1</a>
+                </li>
+                <li>
+                    <a href="#" title="">Próxima</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
