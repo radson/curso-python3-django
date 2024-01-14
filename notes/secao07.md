@@ -149,3 +149,33 @@ Criar e executar as migrates.
 python manage.py makemigrations
 python manage.py migrate
 ```
+
+## 77. Class-based views no Fórum Parte 2
+
+### Objetivos
+
+* Continuar a implementação das views
+
+### Etapas
+
+No arquivo `urls.py` do projeto, adicionar a referência ao `urls.py` da app `forum`.
+
+```Python
+urlpatterns = [
+    # omitido código anterior
+    url(r'^forum/', include('simplemooc.forum.urls', namespace='forum')),
+]
+```
+
+No arquivo `views.py` da app `forum`, não existe a definição do `index` conforme consta no arquivo `urls.py` da app, para isso será necessário definir o `index` que recebe uma instãncia de `ForumView` com `as_view()`, que retornar uma função para `index`.
+
+```Python
+from django.shortcuts import render
+from django.views.generic import TemplateView
+
+
+class ForumView(TemplateView):
+    template_name = 'forum/index.html'
+
+index = ForumView.as_view()
+```
