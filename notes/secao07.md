@@ -549,3 +549,65 @@ class ForumView(ListView):
         return queryset
 ```
 
+## 81. Listagem dos Tópicos por Tag
+
+### Objetivos
+
+* Implementando o filtro por tag.
+
+### Etapas
+
+Adicionar nova URL chamada `index_tagged` que aponta para o mesmo `view.index` porém com um parametro nomeado chamado tag na URL.
+
+```Python
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
+    url(r'^tag/(?P<tag>[\w_-]+)/$', views.index, name='index_tagged'),
+]
+```
+
+Na `view.py`, dentro do método `get_queryset`, obter o parametro nomeados na url via `kwargs` (característica das generic class based views).
+
+```Python
+def get_queryset(self):
+        # Omitido código sem alteração 
+        
+        tag = self.kwargs.get('tag', '')
+
+        if tag:
+            queryset = queryset.filter(tags__slug__icontains=tag)
+
+        return queryset
+```
+
+Na template `index.html`, adicionar as informações das URLs das tags e passando como parametro a `tag.slug`.
+
+```Django
+<div class="pure-menu pure-menu-open">
+    <ul>
+        <!-- Omitido código sem alteração -->
+        <li class="pure-menu-heading">Tags</li>
+        <li>
+            {% for tag in tags %}
+                <a href={% url "forum:index_tagged" tag.slug %} class="tags">
+                    <i class="fa fa-tag"></i>
+                    {{ tag }}
+                </a>
+            {% endfor %}
+        </li>
+    </ul>
+</div>
+
+<div class="well">
+    <!-- Omitido código sem alteração -->
+    <p>
+        <i class="fa fa-tags"></i>
+        Tags: 
+        {% for tag in thread.tags.all %}
+            <a href={% url "forum:index_tagged" tag.slug %}>{{ tag }}</a>
+            {% if not forloop.last %},{% endif %}
+        {% endfor %}
+        <!-- Omitido código sem alteração -->
+    </p>
+</div>
+```
