@@ -179,3 +179,112 @@ class ForumView(TemplateView):
 
 index = ForumView.as_view()
 ```
+
+## 78. Listagem dos Tópicos 1
+
+### Objetivos
+
+* Utilizando a ListView para listar Tópicos.
+
+### Etapas
+
+A [ListView](https://docs.djangoproject.com/en/1.11/ref/class-based-views/generic-display/#listview) é uma classe do Django que serve para listagem de objetos.
+
+No arquivo `views.py`, alterar a implementação da view `ForumView`, indicando o model, a quantidade de registros por página e o nome do template.
+
+```Python
+# Omitido imports anteriores
+from django.views.generic import ListView
+from .models import Thread
+
+# Implementação mantida da aula 77. para referencia
+# class ForumView(TemplateView):
+#     template_name = 'forum/index.html'
+
+class ForumView(ListView):
+    model = Thread
+    paginate_by = 10
+    template_name = 'forum/index.html'
+
+index = ForumView.as_view()
+```
+
+Realizar os ajustes em `index.html` com as seguintes modificações:
+* Incluir as URLS para página de início e do fórum
+* Adicionar codigo que exibe as informações sobre os tópicos, retornados no objetvo `object_list` do `ListView`. Adicionados os filtros `pluralize` e `timesince` para auxiliar na exibição das informações.
+
+```Django
+<!-- omitido código não modificado -->
+<ul class="breadcrumb">
+    <li><a href={% url "core:home" %}>Início</a></li>
+    <li>/</li>
+    <li><a href={% url "forum:index" %}>Fórum de Discussões</a></li>
+</ul>
+
+<!-- omitido código não modificado -->
+
+<div class="inner">
+    {% for thread in object_list %}   
+        <div class="well">
+            <h3><a href="" title="">{{ thread.title }}</a></h3>
+            <h5>
+                Criado por {{ thread.author }} 
+                | {{ thread.answers }}  resposta{{ thread.answers|pluralize }}
+                | {{ thread.views }} visualizaç{{ thread.views|pluralize:"ão,ões" }} 
+            </h5>
+            <p>
+                <i class="fa fa-tags"></i>
+                Tags: 
+                {% for tag in thread.tags.all %}
+                    <a href="">{{ tag }}</a>
+                    {% if not forloop.last %},{% endif %}
+                {% endfor %}
+                <a class="fright" href="" title="">
+                    Atualizado a {{ thread.modified|timesince }} atrás
+                </a>
+            </p>
+        </div>
+    {% endfor %}
+    <!-- omitido código não modificado -->
+</div>
+
+```
+
+Declarar os models no `admin.py` do app `Forum`, para permitir cadastrar e listar registros nesses models pela interface de admin.
+
+```Python
+from django.contrib import admin
+
+from .models import Reply, Thread
+
+
+class ThreadAdmin(admin.ModelAdmin):
+    list_display = ['title', 'author', 'created', 'modified']
+    search_fields = ['title', 'author__email', 'body']
+
+class ReplyAdmin(admin.ModelAdmin):
+    list_display = ['thread', 'author', 'created', 'modified']
+    search_fields = ['thread__title', 'author__email', 'reply']
+
+admin.site.register(Thread, ThreadAdmin)
+admin.site.register(Reply, ReplyAdmin)
+```
+
+Corrigir o model Reply para permitir saber qual thread está associdado.
+
+```Python
+class Reply(models.Model):
+
+    thread = models.ForeignKey(
+        Thread, verbose_name='Tópico', related_name='replies'
+        )
+    # omitido código sem alteração
+```
+
+Criar e executar as migrates da alteração realizada.
+
+```Shell
+python manage.py makemigrations
+python manage.py migrate
+```
+Em seguida acessar a interface de admin do Django e cadastrar alguns tópicos para avaliar a tela de apresentação em http://localhost:3000/forum

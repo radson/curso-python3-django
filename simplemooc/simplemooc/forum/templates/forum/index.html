@@ -5,9 +5,9 @@
 <div class="pure-g-r content-ribbon">
     <div class="pure-u-1">
         <ul class="breadcrumb">
-            <li><a href="#">Início</a></li>
+            <li><a href={% url "core:home" %}>Início</a></li>
             <li>/</li>
-            <li><a href="#">Fórum de Discussões</a></li>
+            <li><a href={% url "forum:index" %}>Fórum de Discussões</a></li>
         </ul>
     </div>
     <div class="pure-u-1-3">
@@ -45,18 +45,27 @@
     </div>
     <div class="pure-u-2-3">
         <div class="inner">
-            <div class="well">
-                <h3><a href="" title="">Título</a></h3>
-                <h5>
-                    Criado por Autor | 0 resposta | 0 Visualização 
-                </h5>
-                <p>
-                    <i class="fa fa-tags"></i>
-                    Tags: 
-                    <a href="#" title="">TAG1</a>
-                    <a class="fright" href="" title="">Atualizado a 1 hora atrás</a>
-                </p>
-            </div>
+            {% for thread in object_list %}   
+                <div class="well">
+                    <h3><a href="" title="">{{ thread.title }}</a></h3>
+                    <h5>
+                        Criado por {{ thread.author }} 
+                        | {{ thread.answers }}  resposta{{ thread.answers|pluralize }}
+                        | {{ thread.views }} visualizaç{{ thread.views|pluralize:"ão,ões" }} 
+                    </h5>
+                    <p>
+                        <i class="fa fa-tags"></i>
+                        Tags: 
+                        {% for tag in thread.tags.all %}
+                            <a href="">{{ tag }}</a>
+                            {% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                        <a class="fright" href="" title="">
+                            Atualizado a {{ thread.modified|timesince }} atrás
+                        </a>
+                    </p>
+                </div>
+            {% endfor %}
             <ul class="pagination pagination-centered">
                 <li>
                     <a href="#" title="">Anterior</a>
