@@ -36,7 +36,12 @@ class ForumView(ListView):
 
 class ThreadView(DetailView):
     model = Thread
-    template_name = 'forum/thread.hml'
+    template_name = 'forum/thread.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ThreadView, self).get_context_data(**kwargs)
+        context["tags"] = Thread.tags.all()
+        return context
     
 
 index = ForumView.as_view()

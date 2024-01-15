@@ -765,3 +765,84 @@ urlpatterns = [
 ]
 ```
 
+## 83. Exibição de um Tópico 2
+
+### Objetivos
+
+* Implementando a página de exibição de um determinado forúm.
+
+### Etapas
+
+Em `models.py`, adicionar o método `get_absolute_url` para gerar a URL canonica do objeto a partir da slug.
+
+```Python
+class Thread(models.Model):
+
+    # Omitido código sem alteração 
+    @models.permalink
+    def get_absolute_url(self):
+        return ("forum:thread", (), {"slug": self.slug})
+
+```
+
+Atualizar o template `index.html` para permitir usar a URL
+
+```Django
+<!-- Omitido código sem alteração -->
+<div class="well">
+    <h3><a href={{ thread.get_absolute_url }} title="">{{ thread.title }}</a></h3>
+    <!-- Omitido código sem alteração -->
+    <p>
+        <!-- Omitido código sem alteração -->
+        <a class="fright" href={{ thread.get_absolute_url }} title="">
+            Atualizado a {{ thread.modified|timesince }} atrás
+        </a>
+    </p>
+</div>
+```
+
+No template `thread.html`, adicionar as referencias ao objeto. A generic view DetailView quando renderiza um template, adiciona no contexto a variável object que é o objeto selecionado. Desse modo é possível exibir as informações como: nome do tópico, texto do tópico, autor e data de criação.
+
+```Django
+<ul class="breadcrumb">
+    <!-- Omitido código sem alteração -->
+    <li>/</li>
+    <li><a href={{ object.get_absolute_url }}>{{ object }}</a></li>
+</ul>
+<!-- Omitido código sem alteração -->
+<div class="well">
+    <h2>{{ object }}</h2>
+    {{ object.body|linebreaks }}
+    <h5>Criado por {{ object.author }}</h5>
+    <p>
+        <i class="fa fa-tags"></i>
+        Tags: 
+        {% for tag in object.tags.all %}
+            <a href={% url "forum:index_tagged" tag.slug %}>{{ tag }}</a>
+            {% if not forloop.last %},{% endif %}
+        {% endfor %}
+        <a href="#" class="fright">Criado a {{ object.created|timesince }} atrás</a>
+    </p>
+</div>
+<!-- Omitido código sem alteração -->
+```
+
+Para a correta exibição das tags no template `thread.html`, é necessário passar no contexto as tags.
+
+```Python
+class ThreadView(DetailView):
+    # Omitido código sem alteração 
+
+    def get_context_data(self, **kwargs):
+        context = super(ThreadView, self).get_context_data(**kwargs)
+        context["tags"] = Thread.tags.all()
+        return context
+```
+
+Para facilitar a criação de novos tópicos pela interface de admin, adicinoar o parametro `prepopulated_fields` passando a `slug`  e o campo de origem para este campo, no caso `título`.
+
+```Python
+class ThreadAdmin(admin.ModelAdmin):
+    # Omitido código sem alteração 
+    prepopulated_fields = {'slug': ('title',)}
+```
