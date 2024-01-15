@@ -36,9 +36,12 @@
                 </li>
                 <li class="pure-menu-heading">Tags</li>
                 <li>
-                    <a href="#" class="tags">
-                        <i class="fa fa-tag"></i>
-                    </a>
+                    {% for tag in tags %}
+                        <a href="#" class="tags">
+                            <i class="fa fa-tag"></i>
+                            {{ tag }}
+                        </a>
+                    {% endfor %}
                 </li>
             </ul>
         </div>
@@ -67,16 +70,21 @@
                 </div>
             {% endfor %}
             <ul class="pagination pagination-centered">
-                <li>
-                    <a href="#" title="">Anterior</a>
-                </li>
-
-                <li>
-                    <a href="#" title="">Página 1</a>
-                </li>
-                <li>
-                    <a href="#" title="">Próxima</a>
-                </li>
+                {% if page_obj.has_previous %}
+                    <li>
+                        <a href="?page={{ page_obj.previous_page_number }}" title="">Anterior</a>
+                    </li>
+                {% endif %}
+                {% for page in  paginator.page_range %}
+                    <li>
+                        <a href="?page={{ page }}" title="">{{ page }}</a>
+                    </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li>
+                        <a href="?page={{ page_obj.next_page_number }}" title="">Próxima</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>

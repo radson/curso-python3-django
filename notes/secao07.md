@@ -288,3 +288,172 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 Em seguida acessar a interface de admin do Django e cadastrar alguns tópicos para avaliar a tela de apresentação em http://localhost:3000/forum
+
+
+## 79. Listagem dos Tópicos 2
+
+### Objetivos
+
+* Utilizando a ListView para listar Tópicos. Organizando a listagem de tags, paginação e demais links de navegação.
+
+### Etapas
+
+Na página `base.html` colocar um link para acessar o forum.
+
+```Django
+<div class="pure-menu pure-menu-open pure-menu-fixed pure-menu-horizontal">
+    <a class="pure-menu-heading" href="{% url 'core:home' %}">SIMPLE MOOC</a>
+    <ul>
+        <li class="pure-menu-selected"><a href="{% url 'core:home' %}">Início</a></li>
+        <li><a href="{% url 'courses:index' %}">Cursos</a></li>
+        <li><a href="{% url 'forum:index' %}">Fórum</a></li>
+        <!-- Omitido código sem alteração -->
+    </ul>
+</div>
+```
+
+No arquivo `views.py`, adicionar mais recursos na viw ForumView para retormar mais dados de contexto, neste caso todas as tags utilizadas.
+
+```Python
+class ForumView(ListView):
+    # Omitido código sem alteração
+
+    def get_context_data(self, **kwargs):
+        context = super(ForumView, self).get_context_data(**kwargs)
+        context["tags"] = Thread.tags.all()
+        return context
+```
+
+Para organizar paginação, o Django dispõe da classe (Pagination)[https://docs.djangoproject.com/en/1.11/topics/pagination/] que pode paginar qualquer coisa que seja um iterável. Alterar no arquivo `index.html`.
+
+```Django
+<div class="pure-menu pure-menu-open">
+    <ul>
+        <!-- Omitido código sem alteração -->
+        <li class="pure-menu-heading">Tags</li>
+        <li>
+            {% for tag in tags %}
+                <a href="#" class="tags">
+                    <i class="fa fa-tag"></i>
+                    {{ tag }}
+                </a>
+            {% endfor %}
+        </li>
+    </ul>
+</div>
+<div class="inner">
+    <!-- Omitido código sem alteração -->
+    <ul class="pagination pagination-centered">
+        {% if page_obj.has_previous %}
+            <li>
+                <a href="?page={{ page_obj.previous_page_number }}" title="">Anterior</a>
+            </li>
+        {% endif %}
+        {% for page in  paginator.page_range %}
+            <li>
+                <a href="?page={{ page }}" title="">{{ page }}</a>
+            </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <li>
+                <a href="?page={{ page_obj.next_page_number }}" title="">Próxima</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+```
+
+Atualização em `style.css` para os links da paginação.
+
+```CSS
+/* Omitido código sem alteração */
+.pure-menu li a.tags {
+    display: inline-block;
+}
+.pagination {
+  height: 36px;
+  margin: 18px 0;
+}
+
+.pagination ul {
+  display: inline-block;
+  *display: inline;
+  margin-bottom: 0;
+  margin-left: 0;
+  -webkit-border-radius: 3px;
+     -moz-border-radius: 3px;
+          border-radius: 3px;
+  *zoom: 1;
+  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+     -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.pagination li {
+  display: inline;
+}
+
+.pagination a {
+  float: left;
+  padding: 0 14px;
+  line-height: 34px;
+  text-decoration: none;
+  border: 1px solid #ddd;
+  border-left-width: 0;
+}
+
+.pagination a:hover {
+  text-decoration: none;
+}
+
+.pagination a:hover,
+.pagination .active a {
+  background-color: #f5f5f5;
+}
+
+.pagination .active a {
+  color: #999999;
+  cursor: default;
+}
+
+.pagination .disabled span,
+.pagination .disabled a,
+.pagination .disabled a:hover {
+  color: #999999;
+  cursor: default;
+  background-color: transparent;
+}
+
+.pagination li:first-child a {
+  border-left-width: 1px;
+  -webkit-border-radius: 3px 0 0 3px;
+     -moz-border-radius: 3px 0 0 3px;
+          border-radius: 3px 0 0 3px;
+}
+
+.pagination li:last-child a {
+  -webkit-border-radius: 0 3px 3px 0;
+     -moz-border-radius: 0 3px 3px 0;
+          border-radius: 0 3px 3px 0;
+}
+
+.pagination-centered {
+  text-align: center;
+}
+
+.pagination-right {
+  text-align: right;
+}
+
+.clear {
+  clear: both;
+  content: " ";
+}
+
+.text-right {
+  text-align: right;
+}
+.text-left {
+  text-align: left;
+}
+```

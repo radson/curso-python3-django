@@ -13,4 +13,10 @@ class ForumView(ListView):
     paginate_by = 10
     template_name = 'forum/index.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(ForumView, self).get_context_data(**kwargs)
+        context["tags"] = Thread.tags.all()
+        return context
+    
+
 index = ForumView.as_view()
