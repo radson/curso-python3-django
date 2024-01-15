@@ -17,19 +17,19 @@
                     Tòpicos do Fórum
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="?order=">
                         <i class="fa fa-refresh"></i>
                         Mais recentes
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="?order=views">
                         <i class="fa fa-eye"></i>
                         Mais visualizados
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="?order=answers">
                         <i class="fa fa-comments-o"></i>
                         Mais Comentados
                     </a>
@@ -72,17 +72,17 @@
             <ul class="pagination pagination-centered">
                 {% if page_obj.has_previous %}
                     <li>
-                        <a href="?page={{ page_obj.previous_page_number }}" title="">Anterior</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.order %}&order={{request.GET.order}}{% endif %}" title="">Anterior</a>
                     </li>
                 {% endif %}
                 {% for page in  paginator.page_range %}
-                    <li>
-                        <a href="?page={{ page }}" title="">{{ page }}</a>
+                    <li {% if page == page_obj.number %} class="active" {% endif %}>
+                        <a href="?page={{ page }}{% if request.GET.order %}&order={{request.GET.order}}{% endif %}" title="">{{ page }}</a>
                     </li>
                 {% endfor %}
                 {% if page_obj.has_next %}
                     <li>
-                        <a href="?page={{ page_obj.next_page_number }}" title="">Próxima</a>
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.order %}&order={{request.GET.order}}{% endif %}" title="">Próxima</a>
                     </li>
                 {% endif %}
             </ul>

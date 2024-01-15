@@ -457,3 +457,95 @@ Atualização em `style.css` para os links da paginação.
   text-align: left;
 }
 ```
+
+## 80. Listagem dos Tópicos 3
+
+### Objetivos
+
+* Utilizando a ListView para listar Tópicos. Organizando os links para ordenação dos tópicos.
+
+### Etapas
+
+Adicionar os links para ordenação, quer será passado via GET e posteriormente tratado na view para realizar a ordenação.
+
+```HTML
+<!-- Omitido código sem alteração -->
+<div class="pure-menu pure-menu-open">
+    <ul>
+        <li class="pure-menu-heading">
+            Tòpicos do Fórum
+        </li>
+        <li>
+            <a href="?order=">
+                <i class="fa fa-refresh"></i>
+                Mais recentes
+            </a>
+        </li>
+        <li>
+            <a href="?order=views">
+                <i class="fa fa-eye"></i>
+                Mais visualizados
+            </a>
+        </li>
+        <li>
+            <a href="?order=answers">
+                <i class="fa fa-comments-o"></i>
+                Mais Comentados
+            </a>
+        </li>
+        <!-- Omitido código sem alteração -->
+    </ul>
+</div>
+```
+
+Para que não se perca a informação de ordenação durante a paginação, será necessário incluir na URL a informação de ordenação escolhida. Foi utilizado o recurso built-in (RequestContext)[https://docs.djangoproject.com/en/1.11/ref/templates/api/#using-requestcontext] para adicionar a informação de ordenação no contexto dos templates.
+Além disso foi adicionado estilo ao botão de paginação ativo.
+
+```Django
+<div class="inner">
+    <!-- Omitido código sem alteração -->
+    <ul class="pagination pagination-centered">
+        {% if page_obj.has_previous %}
+            <li>
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.order %}&order={{request.GET.order}}{% endif %}" title="">Anterior</a>
+            </li>
+        {% endif %}
+        {% for page in  paginator.page_range %}
+            <li {% if page == page_obj.number %} class="active" {% endif %}>
+                <a href="?page={{ page }}{% if request.GET.order %}&order={{request.GET.order}}{% endif %}" title="">{{ page }}</a>
+            </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <li>
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.order %}&order={{request.GET.order}}{% endif %}" title="">Próxima</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+```
+
+No `views.py`, foram implementados os filtros no método `get_queryset`. Com esta implementação, não é necessario informar o parâmetro `model`, podendo ser removido do código. Quando o `order` estiver vazio, o queryset já irá retornar todos os objetos.
+
+```Python
+class ForumView(ListView):
+
+    paginate_by = 2
+    template_name = 'forum/index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ForumView, self).get_context_data(**kwargs)
+        context["tags"] = Thread.tags.all()
+        return context
+
+    def get_queryset(self):
+        queryset = Thread.objects.all()
+        order = self.request.GET.get('order', '')
+
+        if order == 'views':
+            queryset = queryset.order_by('-views')
+        elif order == 'answers':
+            queryset = queryset.order_by('-answers')
+
+        return queryset
+```
+
