@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.views.generic import ListView, TemplateView
+from django.views.generic import DetailView, ListView, TemplateView
 
 from .models import Thread
 
@@ -33,6 +33,11 @@ class ForumView(ListView):
 
         return queryset
     
+
+class ThreadView(DetailView):
+    model = Thread
+    template_name = 'forum/thread.hml'
     
 
 index = ForumView.as_view()
+thread = ThreadView.as_view()

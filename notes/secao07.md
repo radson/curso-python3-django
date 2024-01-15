@@ -611,3 +611,157 @@ Na template `index.html`, adicionar as informações das URLs das tags e passand
     </p>
 </div>
 ```
+
+## 82. Exibição de um Tópico 1
+
+### Objetivos
+
+* Implementando a página de exibição de um determinado forúm.
+
+### Etapas
+
+Alterar o `models.py` Thread para que tenha um identificador mais adequado, como o utilizaod em cursos, para isso adicionar um campo slug.
+
+```Python
+class Thread(models.Model):
+
+    slug = models.SlugField('Identificador', max_length=100, unique=True)
+    # Omitido código sem alteração 
+```
+
+Realizar os migrates
+
+```Shell
+python manage.py makemigrations
+python manage.py migrate
+```
+
+No views, utilizar o (DetailView)[https://docs.djangoproject.com/en/1.11/ref/class-based-views/generic-display/#detailview] que serve para exibir informaçoes detalhadas de um objeto. O DetailView pode se basear em uma pk ou uma slug para pegar o objeto que se deseja exibir.
+
+```Python
+from django.views.generic import DetailView
+# Omitido código sem alteração 
+
+class ThreadView(DetailView):
+    model = Thread
+    template_name = 'forum/thread.hml'
+    
+thread = ThreadView.as_view()
+```
+
+No diretório de templates do app `Forum` adicionar o template `thread.html`
+
+```Django
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="pure-g-r content-ribbon">
+    <div class="pure-u-1">
+        <ul class="breadcrumb">
+            <li><a href={% url "core:home" %}>Início</a></li>
+            <li>/</li>
+            <li><a href={% url "forum:index" %}>Fórum de Discussões</a></li>
+        </ul>
+    </div>
+    <div class="pure-u-1-3">
+        <div class="pure-menu pure-menu-open">
+            <ul>
+                <li class="pure-menu-heading">
+                    Tòpicos do Fórum
+                </li>
+                <li>
+                    <a href="?order=">
+                        <i class="fa fa-refresh"></i>
+                        Mais recentes
+                    </a>
+                </li>
+                <li>
+                    <a href="?order=views">
+                        <i class="fa fa-eye"></i>
+                        Mais visualizados
+                    </a>
+                </li>
+                <li>
+                    <a href="?order=answers">
+                        <i class="fa fa-comments-o"></i>
+                        Mais Comentados
+                    </a>
+                </li>
+                <li class="pure-menu-heading">Tags</li>
+                <li>
+                    {% for tag in tags %}
+                        <a href={% url "forum:index_tagged" tag.slug %} class="tags">
+                            <i class="fa fa-tag"></i>
+                            {{ tag }}
+                        </a>
+                    {% endfor %}
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="pure-u-2-3">
+        <div class="inner">
+            <div class="well">
+                <h2><a href="" title="">Lorem Ipsum</a></h2>
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                    In sit amet laoreet lorem. Vivamus eget posuere turpis. 
+                    Morbi eu ante efficitur, pharetra ligula non, placerat mauris. 
+                    In hac habitasse platea dictumst. Mauris euismod quam massa. 
+                    Donec sit amet ultrices est. Aenean pharetra sodales dui, 
+                    sed blandit ante scelerisque id. Fusce semper ligula lectus, 
+                    eu fringilla enim laoreet nec. Nullam ac tristique tortor, 
+                    a ultricies turpis. Curabitur sed quam ut mauris laoreet 
+                    aliquet vitae at lorem. Quisque eget ligula eleifend, 
+                    malesuada urna eget, laoreet ante. 
+                </p>
+                <h5>Criado por Fulano de Tal</h5>
+                <p>
+                    <i class="fa fa-tags"></i>
+                    Tags: <a href="#">Python</a>, <a href="#">Django</a>
+                    <a href="#" class="fright">Atualizado a 2 horas atrás</a>
+                </p>
+            </div>
+            <div class="well">
+                <h4 id="comments">Respostas
+                <a href="#add_comment" class="fright">Responder</a></h4>
+                <hr />
+                <p>
+                    <strong>Fulano de tal</strong> disse a 2 dias atrás 
+                    <br />
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                    In sit amet laoreet lorem. Vivamus eget posuere turpis. 
+                    Morbi eu ante efficitur, pharetra ligula non, placerat mauris. 
+                    In hac habitasse platea dictumst.
+                </p>
+                <hr>
+                <form method="post" class="pure-form pure-form-stacked" id="add_comment">
+                    <fieldset>
+                        <div class="pure-control-group">
+                            <label for="password">Responder</label>
+                            <textarea cols="40" rows="4"></textarea>
+                        </div>
+                        <div class="pure-controls">
+                            <button type="submit" class="pure-buttom pure-buttom-primary">Enviar</button>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+No arquivo `urls.py`, criar a URL que permitirá acessar a nova página
+
+
+```Python
+urlpatterns = [
+    # Omitido código sem alteração 
+    url(r'^topico/(?P<slug>[\w_-]+)/$', views.thread, name='thread'),
+]
+```
+
