@@ -68,22 +68,25 @@
             <div class="well">
                 <h4 id="comments">Respostas
                 <a href="#add_comment" class="fright">Responder</a></h4>
+                {% for reply in object.replies.all %}
+                    <hr />
+                    {% filter linebreaks %}
+                            <strong>{{ reply.author }}</strong> disse a {{ reply.created|timesince}} atrás 
+                            {{ reply.reply }}
+                    {% endfilter %}
+                {% endfor %}
                 <hr />
-                <p>
-                    <strong>Fulano de tal</strong> disse a 2 dias atrás 
-                    <br />
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-                    In sit amet laoreet lorem. Vivamus eget posuere turpis. 
-                    Morbi eu ante efficitur, pharetra ligula non, placerat mauris. 
-                    In hac habitasse platea dictumst.
-                </p>
-                <hr>
                 <form method="post" class="pure-form pure-form-stacked" id="add_comment">
                     <fieldset>
-                        <div class="pure-control-group">
-                            <label for="reply">Responder</label>
-                            <textarea name="reply" cols="40" rows="4"></textarea>
-                        </div>
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="pure-control-group">
+                                <label for="reply">Responder</label>
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {{ field.errors }}
+                            </div>
+                        {% endfor %}
                         <div class="pure-controls">
                             <button type="submit" class="pure-buttom pure-buttom-primary">Enviar</button>
                         </div>

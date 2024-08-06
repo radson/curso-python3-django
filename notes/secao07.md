@@ -846,3 +846,98 @@ class ThreadAdmin(admin.ModelAdmin):
     # Omitido código sem alteração 
     prepopulated_fields = {'slug': ('title',)}
 ```
+
+## 84. Respondendo ao Tópico 1
+
+### Objetivos
+
+* Implementando a página para responder um tópico do forúm, usando mesmo mecanismo que foi usado em anuncios com os forms do Django.
+
+### Etapas
+
+Na app Forum adicionar arquivo `forum.py` e declarar a classe `ReplyForm` que irá exibir o formulário do model `Reply` apenas com o campo `reply`. Os demais campos serão informados dinamicamente.
+
+```Python
+from django import forms
+
+from .models import Reply
+
+
+class ReplyForm(forms.ModelForm):
+    class Meta:
+        model = Reply
+        fields = ['reply']
+```
+
+No arquivo `views.py` adicionar o método `post`. O `DetailView` já implementa o método `get`, mas não o `post`, que será implementado a seguir:
+
+```Python
+from django.contrib import messages
+from django.shortcuts import redirect
+
+from .forms import ReplyForm
+
+class ThreadView(DetailView):
+    model = Thread
+    template_name = 'forum/thread.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ThreadView, self).get_context_data(**kwargs)
+        context["tags"] = Thread.tags.all()
+        context['form'] = ReplyForm(self.request.POST or None)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if not self.request.user.is_authenticated():
+            messages.error(self.request, 'Para respondeu ao tópico é necessário estar logado.')
+            return redirect(self.request.path)
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        form = context['form']
+        if form.is_valid():
+            reply = form.save(commit=False)
+            reply.thread = self.object
+            reply.author = self.request.user
+            reply.save()
+            messages.success(self.request, 'A sua resposta foi enviada com sucesso.')
+            context['form'] = ReplyForm()
+        return self.render_to_response(context)
+```
+
+No método `post`, inicialmente é verificado se o usuário está autenticado para submeter uma resposta, em seguinda verifica-se se o form é valido e adiciona os demais campos do model, por fim devolve o `form` vazio para ser renderizado.
+
+No template `thread.html`, adiciona-se a lógica para exibir o form de resposta, as respostas e autores.
+
+```Django
+<!-- Omitido código sem alteração -->
+<div class="well">
+    <h4 id="comments">Respostas
+    <a href="#add_comment" class="fright">Responder</a></h4>
+    {% for reply in object.replies.all %}
+        <hr />
+        {% filter linebreaks %}
+                <strong>{{ reply.author }}</strong> disse a {{ reply.created|timesince}} atrás 
+                {{ reply.reply }}
+        {% endfilter %}
+    {% endfor %}
+    <hr />
+    <form method="post" class="pure-form pure-form-stacked" id="add_comment">
+        <fieldset>
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="pure-control-group">
+                    <label for="reply">Responder</label>
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <div class="pure-controls">
+                <button type="submit" class="pure-buttom pure-buttom-primary">Enviar</button>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<!-- Omitido código sem alteração -->
+```
+
