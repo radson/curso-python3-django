@@ -941,3 +941,50 @@ No template `thread.html`, adiciona-se a lógica para exibir o form de resposta,
 <!-- Omitido código sem alteração -->
 ```
 
+## 85. Respondendo ao Tópico 2
+
+### Objetivos
+
+* Implementando lógica para exibir as views e as respostas.
+* Usar o recurso de signals do Django.
+
+### Etapas
+
+No `models.py` (no final do arquivo, fora do escopo da classe) adicionar métodos que irão aumentar ou diminuir a quantidade de respostas de acordo com a ação (criar ou deletar) e ligar usando os `models.signals`.
+
+```Python
+# omitido código sem alteração
+
+def post_save_reply(created, instance, **kwargs):
+    instance.thread.answers = instance.thread.replies.count()
+    instance.thread.save()
+
+def post_delete_reply(instance, **kwargs):
+    instance.thread.answers = instance.thread.replies.count()
+    instance.thread.save()
+    
+models.signals.post_save.connect(
+    post_save_reply, sender=Reply, dispatch_uid='post_save_reply'
+)
+models.signals.post_delete.connect(
+    post_delete_reply, sender=Reply, dispatch_uid='post_delete_reply'
+)
+```
+
+No arquivo `view.py` dentro da classe `ThreadView`, adicionar ao `get` que o `DetailView` já fornece, a capacidade de contar as vizualizações.
+
+```Python
+# omitido código sem alteração
+class ThreadView(DetailView):
+    model = Thread
+    template_name = 'forum/thread.html'
+
+    def get(self, request, *args, **kwargs):
+        response = super(ThreadView, self).get(request, *args, **kwargs)
+        if not self.request.user.is_authenticated() or \
+            (self.object.author != self.request.user):
+            self.object.views = self.object.views + 1
+            self.object.save()
+        return response
+    # omitido código sem alteração
+```

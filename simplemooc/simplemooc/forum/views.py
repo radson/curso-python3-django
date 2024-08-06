@@ -40,6 +40,14 @@ class ThreadView(DetailView):
     model = Thread
     template_name = 'forum/thread.html'
 
+    def get(self, request, *args, **kwargs):
+        response = super(ThreadView, self).get(request, *args, **kwargs)
+        if not self.request.user.is_authenticated() or \
+            (self.object.author != self.request.user):
+            self.object.views = self.object.views + 1
+            self.object.save()
+        return response
+
     def get_context_data(self, **kwargs):
         context = super(ThreadView, self).get_context_data(**kwargs)
         context["tags"] = Thread.tags.all()
