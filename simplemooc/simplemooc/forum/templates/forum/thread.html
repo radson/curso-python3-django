@@ -17,18 +17,18 @@
         <div class="pure-menu pure-menu-open">
             <ul>
                 <li class="pure-menu-heading">
-                    Tòpicos do Fórum
+                    Tópicos do Fórum
                 </li>
                 <li>
                     <a href="?order=">
                         <i class="fa fa-refresh"></i>
-                        Mais recentes
+                        Mais Recentes
                     </a>
                 </li>
                 <li>
                     <a href="?order=views">
                         <i class="fa fa-eye"></i>
-                        Mais visualizados
+                        Mais Visualizados
                     </a>
                 </li>
                 <li>
@@ -65,13 +65,13 @@
                     <a href="#" class="fright">Criado a {{ object.created|timesince }} atrás</a>
                 </p>
             </div>
-            <div class="well">
+            <div class="well" id="div-comments">
                 <h4 id="comments">Respostas
                 <a href="#add_comment" class="fright">Responder</a></h4>
                 {% for reply in object.replies.all %}
                     <hr />
                     <p>
-                        <strong>{{ reply.author }}</strong> disse a {{ reply.created|timesince}} atrás:
+                        <strong>{{ reply.author }}</strong> disse à {{ reply.created|timesince}} atrás:
                         <br>
                             {{ reply.reply|linebreaksbr }}
                             <br>
@@ -79,10 +79,10 @@
                                 <a href="{% url 'forum:reply_incorrect' reply.pk %}" 
                                 class="pure-button button-error reply-cancel-correct-lnk {% if not reply.correct %} hidden{% endif %}">
                                     Cancelar Resposta Correta</a>
-                                <a href={% url 'forum:reply_correct' reply.pk %} 
+                                <a href="{% url 'forum:reply_correct' reply.pk %}"
                                 class="pure-button button-success reply-correct-lnk {% if reply.correct %} hidden{% endif %}">
                                     Resposta Correta</a>
-                                <span class="fright label-success reply-correct-msg">resposta indicada pelo autor</span>
+                                <span class="fright label-success reply-correct-msg {% if not reply.correct %} hidden{% endif %}">resposta indicada pelo autor</span>
                                 <br class="reply-correct-msg {% if not reply.correct %} hidden{% endif %}" />
                             {% elif reply.correct %}
                                 <span class="fright label-success">resposta indicada pelo autor</span>
@@ -95,15 +95,14 @@
                     <fieldset>
                         {% csrf_token %}
                         {% for field in form %}
-                            <div class="pure-control-group">
-                                <label for="reply">Responder</label>
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {{ field.errors }}
-                            </div>
+                        <div class="pure-control-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
                         {% endfor %}
                         <div class="pure-controls">
-                            <button type="submit" class="pure-buttom pure-buttom-primary">Enviar</button>
+                            <button type="submit" class="pure-button pure-button-primary">Enviar</button>
                         </div>
                     </fieldset>
                 </form>
@@ -117,15 +116,37 @@
 {% block scripts %}
 <script type="text/javascript">
     $("reply-cancel-correct-lnk").on("click", function(e){
+        e.preventDefault();
         var $this = $(this);
         var $p = $this.closest("p");
         $.get($this.attr('href'), function(data){
             if(data.success){
                 $p.find(".reply-correct-msg").addClass('hidden');
+                $this.addClass('hidden');
+                $p.find(".reply-correct-lnk").removeClass('hidden');
             } else {
                 alert(data.message);
             }
         }, "json");
+        return false;
+    });
+    $("reply-correct-lnk").on("click", function(e){
+        e.preventDefault();
+        var $this = $(this);
+        var $p = $this.closest("p");
+        $.get($this.attr('href'), function(data){
+            if(data.success){
+                $("#div-comments .reply-correct-msg").addClass('hidden');
+                $("#div-comments .reply-cancel-correct-lnk").addClass('hidden');
+                $("#div-comments .reply-correct-lnk").removeClass('hidden');
+                $p.find(".reply-correct-msg").removeClass('hidden');
+                $this.addClass('hidden');
+                $p.find(".reply-cancel-correct-lnk").removeClass('hidden');
+            } else {
+                alert(data.message);
+            }
+        }, "json");
+        return false;
     });
 </script>
 {% endblock scripts %}

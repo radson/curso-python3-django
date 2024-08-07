@@ -1178,3 +1178,109 @@ No arquivo de CSS, incluir no fim as classes para o label e para esconder os ele
   display: none;
 }
 ```
+
+## 88. Resposta correta via ajax 2
+
+### Objetivos
+
+* Como usar Ajax com Django, retornando tanto Json como uma parte do HTML.
+* Implementar Ajax com jQuery
+
+### Etapas
+
+Continuando implementação no template `thread.html`. Adicionar um id (div-comments) na div da respostas para permitir selecionar com o jQuery para alterar o atributo de todos os elementos (por exemplo quando uma resposta for considerada correta, alterar o status das demais).
+
+```Django
+<!-- Omitido código sem alteração -->
+<div class="well" id="div-comments">
+    <h4 id="comments">Respostas
+    <a href="#add_comment" class="fright">Responder</a></h4>
+    {% for reply in object.replies.all %}
+        <hr />
+        <p>
+            <strong>{{ reply.author }}</strong> disse à {{ reply.created|timesince}} atrás:
+            <br>
+                {{ reply.reply|linebreaksbr }}
+                <br>
+                {% if object.author == user %}
+                    <a href="{% url 'forum:reply_incorrect' reply.pk %}" 
+                    class="pure-button button-error reply-cancel-correct-lnk {% if not reply.correct %} hidden{% endif %}">
+                        Cancelar Resposta Correta</a>
+                    <a href="{% url 'forum:reply_correct' reply.pk %}"
+                    class="pure-button button-success reply-correct-lnk {% if reply.correct %} hidden{% endif %}">
+                        Resposta Correta</a>
+                    <span class="fright label-success reply-correct-msg {% if not reply.correct %} hidden{% endif %}">resposta indicada pelo autor</span>
+                    <br class="reply-correct-msg {% if not reply.correct %} hidden{% endif %}" />
+                {% elif reply.correct %}
+                    <span class="fright label-success">resposta indicada pelo autor</span>
+                    <br>
+                {% endif %}
+        </p>
+    {% endfor %}
+<!-- Omitido código sem alteração -->
+```
+
+No block `javascript` continuando a implementação, quando clicar em cancelar uma resposta correta, remove o label de resposta correta do elemento selecionado. Quando clicar em resposta correta, adicionar ao elemento selecionado e remover de todas as demais.
+
+```Javascript
+$("reply-cancel-correct-lnk").on("click", function(e){
+    e.preventDefault();
+    var $this = $(this);
+    var $p = $this.closest("p");
+    $.get($this.attr('href'), function(data){
+        if(data.success){
+            $p.find(".reply-correct-msg").addClass('hidden');
+            $this.addClass('hidden');
+            $p.find(".reply-correct-lnk").removeClass('hidden');
+        } else {
+            alert(data.message);
+        }
+    }, "json");
+    return false;
+});
+$("reply-correct-lnk").on("click", function(e){
+    e.preventDefault();
+    var $this = $(this);
+    var $p = $this.closest("p");
+    $.get($this.attr('href'), function(data){
+        if(data.success){
+            $("#div-comments .reply-correct-msg").addClass('hidden');
+            $("#div-comments .reply-cancel-correct-lnk").addClass('hidden');
+            $("#div-comments .reply-correct-lnk").removeClass('hidden');
+            $p.find(".reply-correct-msg").removeClass('hidden');
+            $this.addClass('hidden');
+            $p.find(".reply-cancel-correct-lnk").removeClass('hidden');
+        } else {
+            alert(data.message);
+        }
+    }, "json");
+    return false;
+});
+```
+
+Em `views.py` alterar para enviar um response em json quando o request for ajax, mantendo a forma anterior quando for um GET.
+
+
+```Python
+import json
+
+from django.http import HttpResponse
+
+# Omitido código sem alteração
+class ReplyCorrectView(View):
+    correct = True
+
+    def get(self, request, pk):
+        reply = get_object_or_404(Reply, pk=pk, thread__author=request.user)
+        reply.correct = self.correct
+        reply.save()
+        message = 'Resposta atualizada com sucesso.'
+        
+        if request.is_ajax():
+            data = {'success': True, 'message': message}
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+        else:
+            messages.success(request, message)
+            return redirect(reply.thread.get_absolute_url())
+# Omitido código sem alteração
+```

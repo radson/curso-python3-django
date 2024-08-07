@@ -1,4 +1,7 @@
+import json
+
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, TemplateView, View
 
@@ -56,7 +59,7 @@ class ThreadView(DetailView):
 
     def post(self, request, *args, **kwargs):
         if not self.request.user.is_authenticated():
-            messages.error(self.request, 'Para respondeu ao tópico é necessário estar logado.')
+            messages.error(self.request, 'Para responder ao tópico é necessário estar logado.')
             return redirect(self.request.path)
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
@@ -77,8 +80,14 @@ class ReplyCorrectView(View):
         reply = get_object_or_404(Reply, pk=pk, thread__author=request.user)
         reply.correct = self.correct
         reply.save()
-        messages.success(request, 'Resposta atualizada com sucesso.')
-        return redirect(reply.thread.get_absolute_url())
+        message = 'Resposta atualizada com sucesso.'
+        
+        if request.is_ajax():
+            data = {'success': True, 'message': message}
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+        else:
+            messages.success(request, message)
+            return redirect(reply.thread.get_absolute_url())
 
 
 
