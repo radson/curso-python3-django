@@ -988,3 +988,97 @@ class ThreadView(DetailView):
         return response
     # omitido código sem alteração
 ```
+
+## 86. Indicando a resposta correta
+
+### Objetivos
+
+* Implementar recurso para que o autor do tópico possa indicar se a resposta é correta ou não.
+
+### Etapas
+
+No arquivo `admin.py` incluir o campo `correct` na listagem:
+
+```Python
+# omitido código sem alteração
+class ReplyAdmin(admin.ModelAdmin):
+    list_display = ['thread', 'author', 'correct', 'created', 'modified']
+    # omitido código sem alteração
+```
+
+No `models.py`, alterar o `post_save_reply` adicionando a lógica que altera o campo booleano `correct` quando uma resposta é correta. Como o update não é tratado com os signals, é necessário inserir explicitamente.
+
+```Python
+# omitido código sem alteração
+def post_save_reply(created, instance, **kwargs):
+    instance.thread.answers = instance.thread.replies.count()
+    instance.thread.save()
+    if instance.correct:
+        instance.thread.replies.exclude(pk=instance.pk).update(
+            correct=False
+        )
+    # omitido código sem alteração
+```
+Alterar a lógica anterior no template `threads.html` para a parte de respostas poder incluir os botões para aprovar/reprovar uma resposta.
+
+```Django
+<!-- Omitido código sem alteração -->
+<h4 id="comments">Respostas
+<a href="#add_comment" class="fright">Responder</a></h4>
+{% for reply in object.replies.all %}
+    <hr />
+    <p>
+        <strong>{{ reply.author }}</strong> disse a {{ reply.created|timesince}} atrás:
+        <br>
+            {{ reply.reply|linebreaksbr }}
+            <br>
+            {% if reply.correct %}
+                {% if reply.author == user %}
+                    <a href="{% url 'forum:reply_incorrect' reply.pk %}" class="pure-button button-error">
+                        Cancelar Resposta Correta</a>
+                {% endif %}
+                <span class="fright label-success">resposta indicada pelo autor</span>
+                <br />
+            {% elif  reply.author == user %}
+                    <a href={% url 'forum:reply_correct' reply.pk %} class="pure-button button-success">Resposta Correta</a>
+            {% endif %}
+    </p>
+{% endfor %}
+<hr />
+<!-- Omitido código sem alteração -->
+```
+
+No `views.py` implementar a lógica da view para resposta correta/incorreta.
+
+```Python
+# omitido código sem alteração
+from django.shortcuts import get_object_or_404
+from django.views.generic import View
+
+from .models import Reply
+
+class ReplyCorrectView(View):
+    correct = True
+
+    def get(self, request, pk):
+        reply = get_object_or_404(Reply, pk=pk, author=request.user)
+        reply.correct = self.correct
+        reply.save()
+        messages.success(request, 'Resposta atualizada com sucesso.')
+        return redirect(reply.thread.get_absolute_url())
+
+reply_correct = ReplyCorrectView.as_view()
+reply_incorrect = ReplyCorrectView.as_view(correct=False)
+# omitido código sem alteração
+```
+
+Adicionar as novas rotas em `urls.py`.
+
+```Python
+# omitido código sem alteração
+urlpatterns = [
+    url(r'^respostas/(?P<pk>\d+)/correta/$', views.reply_correct, name='reply_correct'),
+    url(r'^respostas/(?P<pk>\d+)/incorreta/$', views.reply_incorrect, name='reply_incorrect'),
+]
+# omitido código sem alteração
+```

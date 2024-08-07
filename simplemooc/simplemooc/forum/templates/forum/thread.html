@@ -70,10 +70,22 @@
                 <a href="#add_comment" class="fright">Responder</a></h4>
                 {% for reply in object.replies.all %}
                     <hr />
-                    {% filter linebreaks %}
-                            <strong>{{ reply.author }}</strong> disse a {{ reply.created|timesince}} atrás 
-                            {{ reply.reply }}
-                    {% endfilter %}
+                    <p>
+                        <strong>{{ reply.author }}</strong> disse a {{ reply.created|timesince}} atrás:
+                        <br>
+                            {{ reply.reply|linebreaksbr }}
+                            <br>
+                            {% if reply.correct %}
+                                {% if reply.author == user %}
+                                    <a href="{% url 'forum:reply_incorrect' reply.pk %}" class="pure-button button-error">
+                                        Cancelar Resposta Correta</a>
+                                {% endif %}
+                                <span class="fright label-success">resposta indicada pelo autor</span>
+                                <br />
+                            {% elif  reply.author == user %}
+                                    <a href={% url 'forum:reply_correct' reply.pk %} class="pure-button button-success">Resposta Correta</a>
+                            {% endif %}
+                    </p>
                 {% endfor %}
                 <hr />
                 <form method="post" class="pure-form pure-form-stacked" id="add_comment">

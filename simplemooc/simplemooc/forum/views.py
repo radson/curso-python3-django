@@ -1,9 +1,9 @@
 from django.contrib import messages
-from django.shortcuts import redirect, render
-from django.views.generic import DetailView, ListView, TemplateView
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.generic import DetailView, ListView, TemplateView, View
 
 from .forms import ReplyForm
-from .models import Thread
+from .models import Reply, Thread
 
 # Implementação mantida da aula 77. para referencia
 # class ForumView(TemplateView):
@@ -70,6 +70,19 @@ class ThreadView(DetailView):
             context['form'] = ReplyForm()
         return self.render_to_response(context)
     
+class ReplyCorrectView(View):
+    correct = True
+
+    def get(self, request, pk):
+        reply = get_object_or_404(Reply, pk=pk, author=request.user)
+        reply.correct = self.correct
+        reply.save()
+        messages.success(request, 'Resposta atualizada com sucesso.')
+        return redirect(reply.thread.get_absolute_url())
+
+
 
 index = ForumView.as_view()
 thread = ThreadView.as_view()
+reply_correct = ReplyCorrectView.as_view()
+reply_incorrect = ReplyCorrectView.as_view(correct=False)
