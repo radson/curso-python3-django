@@ -1082,3 +1082,99 @@ urlpatterns = [
 ]
 # omitido código sem alteração
 ```
+
+## 87. Resposta correta via ajax 1
+
+### Objetivos
+
+* Como usar Ajax com Django, retornando tanto Json como uma parte do HTML.
+* Implementar Ajax com jQuery
+
+### Etapas
+
+Adicionar o CDN do google para jQuery no final do `body` do template `base.html` e uma tag `block` do Django para adicionar as implementações em javascripts nos templates que hedarem esse block.
+
+```Html
+<!-- Omitido código sem alteração -->
+<script src='http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
+{% block scripts %}{% endblock scripts %}
+</body>
+</html>
+```
+
+Na aula anterior a lógica estava errada e dava permissão para o autor da resposta. Corrigir o método `get` da view `ReplyCorrectView` passando por parametro o autor da thread (thread__author).
+
+```Python
+class ReplyCorrectView(View):
+    correct = True
+
+    def get(self, request, pk):
+        reply = get_object_or_404(Reply, pk=pk, thread__author=request.user)
+```
+
+Alterado arquivo de template `thread.html` para que os botões fiquem disponiveis para o autor do topico (object.author). Além disso, adicionar classes aos elementos HTML que serão manipulados pelo javascript para exibir/ocultar os botões e label.
+
+```Django
+<!-- Omitido código sem alteração -->
+<h4 id="comments">Respostas
+<a href="#add_comment" class="fright">Responder</a></h4>
+{% for reply in object.replies.all %}
+    <hr />
+    <p>
+        <strong>{{ reply.author }}</strong> disse a {{ reply.created|timesince}} atrás:
+        <br>
+            {{ reply.reply|linebreaksbr }}
+            <br>
+            {% if object.author == user %}
+                <a href="{% url 'forum:reply_incorrect' reply.pk %}" 
+                class="pure-button button-error reply-cancel-correct-lnk {% if not reply.correct %} hidden{% endif %}">
+                    Cancelar Resposta Correta</a>
+                <a href={% url 'forum:reply_correct' reply.pk %} 
+                class="pure-button button-success reply-correct-lnk {% if reply.correct %} hidden{% endif %}">
+                    Resposta Correta</a>
+                <span class="fright label-success reply-correct-msg">resposta indicada pelo autor</span>
+                <br class="reply-correct-msg {% if not reply.correct %} hidden{% endif %}" />
+            {% elif reply.correct %}
+                <span class="fright label-success">resposta indicada pelo autor</span>
+                <br>
+            {% endif %}
+    </p>
+{% endfor %}
+<!-- Omitido código sem alteração -->
+```
+
+No fim do template, adicionar o código jQuery que seleciona o elemento html e faz a manipulação do atributo class.
+
+```Django
+<!-- Omitido código sem alteração -->
+{% block scripts %}
+<script type="text/javascript">
+    $("reply-cancel-correct-lnk").on("click", function(e){
+        var $this = $(this);
+        var $p = $this.closest("p");
+        $.get($this.attr('href'), function(data){
+            if(data.success){
+                $p.find(".reply-correct-msg").addClass('hidden');
+            } else {
+                alert(data.message);
+            }
+        }, "json");
+    });
+</script>
+{% endblock scripts %}
+```
+
+No arquivo de CSS, incluir no fim as classes para o label e para esconder os elementos com `hidden`.
+
+```CSS
+/* Omitido código sem alteração */
+.label-success{
+  background-color: #5aba59;
+  color: #fff;
+  margin: 0 0.1em;
+  padding: 0.3em 1em;
+}
+.hidden {
+  display: none;
+}
+```

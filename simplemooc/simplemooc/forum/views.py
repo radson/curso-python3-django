@@ -74,7 +74,7 @@ class ReplyCorrectView(View):
     correct = True
 
     def get(self, request, pk):
-        reply = get_object_or_404(Reply, pk=pk, author=request.user)
+        reply = get_object_or_404(Reply, pk=pk, thread__author=request.user)
         reply.correct = self.correct
         reply.save()
         messages.success(request, 'Resposta atualizada com sucesso.')
